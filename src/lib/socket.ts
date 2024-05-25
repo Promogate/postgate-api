@@ -2,6 +2,7 @@ import { Server } from "http";
 import { Server as SocketIO } from "socket.io";
 import logger from "../utils/logger";
 import AppError from "../helpers/AppError";
+import { HttpStatusCode } from "../helpers/HttpStatusCode";
 
 let io: SocketIO;
 
@@ -18,7 +19,7 @@ export const initIO = (httpServer: Server) => {
 
 export const getIO = (): SocketIO => {
   if (!io) {
-    throw new AppError("Socket IO não inicializado");
+    throw new AppError({ message: "Socket IO não inicializado", statusCode: HttpStatusCode.BAD_REQUEST });
   }
   return io;
 }

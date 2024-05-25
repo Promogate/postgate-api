@@ -24,6 +24,7 @@
     "axios": "^1.7.2",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
+    "express-async-errors": "^3.1.1",
     "http-graceful-shutdown": "^3.1.13",
     "pino": "^9.1.0",
     "pino-pretty": "^11.1.0",

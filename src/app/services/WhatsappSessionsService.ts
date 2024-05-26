@@ -205,4 +205,26 @@ export default class WhatsappSessionsService {
       })
     }
   }
+
+  getSession(sessionId: string) {
+    return this.sessions.find(session => session.id === sessionId);
+  }
+
+  async getChats(sessionId: string) {
+    const session = this.getSession(sessionId);
+    if (!session) throw new AppError({
+      message: "Whatsapp session not found or is restarting. Verify connection status or try again later",
+      statusCode: HttpStatusCode.NOT_FOUND
+    })
+    try {
+      const chats = await session.getChats();
+      return chats;
+    } catch (error: any) {
+      logger.error(`[WhatsappSessionsService|getChats]: ${error.message}`);
+      throw new AppError({
+        message: error.message,
+        statusCode: HttpStatusCode.BAD_REQUEST
+      })
+    }
+  }
 }

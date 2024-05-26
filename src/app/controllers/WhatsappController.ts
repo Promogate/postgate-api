@@ -18,5 +18,11 @@ export default class WhatsappController {
       const result = await whatsappSessionsService.countActiveSessions();
       return response.json(result).status(200);
     });
+
+    httpServer.on("get", "/whatsapp/get-chats/:sessionId", [], async (request: Request, response: Response) => {
+      const sessionId = request.params.sessionId as string;
+      const result = await whatsappSessionsService.getChats(sessionId);
+      return response.json(result).status(200);
+    });
   }
 }

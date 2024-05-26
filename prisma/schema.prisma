@@ -25,6 +25,8 @@ model WhatsappSession {
   id      String  @id @default(cuid())
   session String?
   status  String?
+  qr      String?
+  retries Int?
   user    User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId  String?
 }

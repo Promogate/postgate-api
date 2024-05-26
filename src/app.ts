@@ -2,14 +2,20 @@ import dotenv from "dotenv";
 import { ExpressAdapter } from "./app/adapters/ExpressAdapter";
 import UserController from "./app/controllers/UserController";
 import CreateUserService from "./app/services/CreateUserService";
-import UserRepository from "./database/repositories/UserRepository";
+import UserRepository from "./database/prisma-repositories/UserRepository";
 import prisma from "./lib/prisma";
+import WhatsappController from "./app/controllers/WhatsappController";
+import WhatsappSessionsService from "./app/services/WhatsappSessionsService";
+import WhatsappRepository from "./database/prisma-repositories/WhatsappRepository";
 
 dotenv.config();
 const app = new ExpressAdapter();
 const userRepository = new UserRepository(prisma)
 const createUserService = new CreateUserService(userRepository);
+const whatsappRepository = new WhatsappRepository(prisma);
+const whatsappSessionsService = new WhatsappSessionsService(whatsappRepository);
 
 new UserController(app, createUserService);
+new WhatsappController(app, whatsappSessionsService);
 
 export default app;

@@ -21,7 +21,7 @@ class CreateUserService implements CreateUser {
         password: encryptedPassword,
         username: input.username
       });
-      const token = sign({ email: user.email }, process.env.JWT_SECRET as string, { expiresIn: "1d" });
+      const token = sign({ id: user.id }, process.env.JWT_SECRET as string, { expiresIn: "1d" });
       io.emit("user", {
         action: "created",
         token: token,

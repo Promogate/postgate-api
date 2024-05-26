@@ -14,8 +14,16 @@ datasource db {
 }
 
 model User {
-  id       String  @id @default(cuid())
-  username String?
-  email    String  @unique
-  password String
+  id               String            @id @default(cuid())
+  username         String?
+  email            String            @unique
+  password         String
+  whatsappSessions WhatsappSession[]
+}
+
+model WhatsappSession {
+  id      String  @id @default(cuid())
+  session String
+  user    User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId  String?
 }

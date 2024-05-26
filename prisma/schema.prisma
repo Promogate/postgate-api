@@ -23,7 +23,7 @@ model User {
 
 model WhatsappSession {
   id      String  @id @default(cuid())
-  session String
+  session String?
   user    User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId  String?
 }

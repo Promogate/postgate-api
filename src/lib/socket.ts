@@ -7,7 +7,13 @@ import { HttpStatusCode } from "../helpers/HttpStatusCode";
 let io: SocketIO;
 
 export const initIO = (httpServer: Server) => {
-  io = new SocketIO(httpServer);
+  io = new SocketIO(httpServer, {
+    cors: {
+      origin: "http://localhost:3000", // Replace with your frontend URL
+      methods: ["GET", "POST"],
+      credentials: true,
+    },
+  });
 
   io.on("connection", socket => {
     logger.info("Client Connected");

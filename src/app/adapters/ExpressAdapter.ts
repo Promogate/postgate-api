@@ -7,6 +7,7 @@ import { HttpServer } from "../interfaces/HttpServer";
 import AppError from "../../helpers/AppError";
 import { HttpStatusCode } from "../../helpers/HttpStatusCode";
 import logger from "../../utils/logger";
+import path from "path";
 
 export class ExpressAdapter implements HttpServer {
   app: Express;
@@ -18,13 +19,14 @@ export class ExpressAdapter implements HttpServer {
     this.app = express();
     this.app.use(cors());
     this.app.use(express.json());
+    this.app.use(express.static(path.join(__dirname, "../../../public")));
 
     this.app.use(async (err: Error, req: Request, res: Response, _: NextFunction) => {
       if (err instanceof AppError) {
         logger.warn(err);
         return res.status(err.statusCode).json({ error: err.message });
       }
-    
+
       logger.error(err);
       return res.status(500).json({ error: "Internal server error" });
     });

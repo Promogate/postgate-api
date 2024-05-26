@@ -8,8 +8,8 @@ class UserController {
     createUserService: CreateUser
   ) {
     httpServer.on("post", "/user/create", [], async (request: Request, response: Response) => {
-      await createUserService.execute(request.body);
-      return response.status(201).json({ message: "ok" });
+      const { token } = await createUserService.execute(request.body);
+      return response.status(201).json({ token });
     });
   }
 }

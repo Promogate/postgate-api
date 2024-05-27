@@ -7,6 +7,9 @@ import prisma from "./lib/prisma";
 import WhatsappController from "./app/controllers/WhatsappController";
 import WhatsappSessionsService from "./app/services/WhatsappSessionsService";
 import WhatsappRepository from "./database/prisma-repositories/WhatsappRepository";
+import ResourcesController from "./app/controllers/ResourcesController";
+import SaveManyWhatsappChatService from "./app/services/SaveManyWhatsappChatService";
+import ResourcesRepository from "./database/prisma-repositories/ResourcesRepository";
 
 dotenv.config();
 const app = new ExpressAdapter();
@@ -14,8 +17,11 @@ const userRepository = new UserRepository(prisma)
 const createUserService = new CreateUserService(userRepository);
 const whatsappRepository = new WhatsappRepository(prisma);
 const whatsappSessionsService = new WhatsappSessionsService(whatsappRepository);
+const resourcesRepository = new ResourcesRepository(prisma);
+const saveManyChatsService = new SaveManyWhatsappChatService(resourcesRepository);
 
 new UserController(app, createUserService);
 new WhatsappController(app, whatsappSessionsService);
+new ResourcesController(app, saveManyChatsService);
 
 export default app;

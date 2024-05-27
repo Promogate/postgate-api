@@ -10,6 +10,7 @@ import WhatsappRepository from "./database/prisma-repositories/WhatsappRepositor
 import ResourcesController from "./app/controllers/ResourcesController";
 import SaveManyWhatsappChatService from "./app/services/SaveManyWhatsappChatService";
 import ResourcesRepository from "./database/prisma-repositories/ResourcesRepository";
+import GetAllChatsService from "./app/services/GetAllChats";
 
 dotenv.config();
 const app = new ExpressAdapter();
@@ -19,9 +20,10 @@ const whatsappRepository = new WhatsappRepository(prisma);
 const whatsappSessionsService = new WhatsappSessionsService(whatsappRepository);
 const resourcesRepository = new ResourcesRepository(prisma);
 const saveManyChatsService = new SaveManyWhatsappChatService(resourcesRepository);
+const getAllChatsService = new GetAllChatsService(resourcesRepository);
 
 new UserController(app, createUserService);
 new WhatsappController(app, whatsappSessionsService);
-new ResourcesController(app, saveManyChatsService);
+new ResourcesController(app, saveManyChatsService, getAllChatsService);
 
 export default app;

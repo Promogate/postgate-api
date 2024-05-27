@@ -46,7 +46,7 @@ model Chats {
 }
 
 model Workflow {
-  id          String  @id @default(uuid())
+  id          String  @id @default(cuid())
   title       String
   description String?
   messages    String?
@@ -57,7 +57,7 @@ model Workflow {
 }
 
 model SendingList {
-  id   String  @id @default(uuid())
+  id   String  @id @default(cuid())
   name String
   list String?
   scheduledWorkflow ScheduledWorkflow[]
@@ -67,7 +67,7 @@ model SendingList {
 }
 
 model ScheduledWorkflow {
-  id        String   @id @default(uuid())
+  id        String   @id @default(cuid())
   startTime DateTime
 
   user          User?        @relation(fields: [userId], references: [id], onDelete: Cascade)

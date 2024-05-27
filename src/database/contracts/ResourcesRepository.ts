@@ -25,3 +25,16 @@ export namespace GetAllChatsRespository {
   }
   export type Output = Chats[]
 }
+
+export interface SaveSendingList {
+  saveSendingList(input: SaveSendingList.Input): Promise<SaveSendingList.Output>;
+}
+
+export namespace SaveSendingList {
+  export type Input = {
+    userId: string;
+    name: string;
+    list?: string;
+  };
+  export type Output = void;
+}

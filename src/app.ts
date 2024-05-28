@@ -1,4 +1,6 @@
 import dotenv from "dotenv";
+import http from "http";
+
 import { ExpressAdapter } from "./app/adapters/ExpressAdapter";
 import UserController from "./app/controllers/UserController";
 import CreateUserService from "./app/services/CreateUserService";
@@ -30,4 +32,6 @@ new UserController(app, createUserService, authenticateUserService);
 new WhatsappController(app, whatsappSessionsService);
 new ResourcesController(app, saveManyChatsService, getAllChatsService, createSendingList);
 
-export default app;
+const server = http.createServer(app.getServer())
+
+export default server;

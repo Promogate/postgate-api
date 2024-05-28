@@ -14,7 +14,7 @@ export default class ResourcesController {
     readonly getAllChatsService: GetAllChats,
     readonly createSendingList: CreateSendingList
   ) {
-    httpServer.on("post", "/resources/chats/save/:sessionId", [],
+    httpServer.on("post", "/resources/chats/save/:sessionId", [verifyToken],
       async (request: Request, response: Response) => {
         const sessionId = request.params.sessionId
         if (!sessionId) {
@@ -29,10 +29,9 @@ export default class ResourcesController {
           return response.status(HttpStatusCode.BAD_REQUEST);
         }
       })
-
-    httpServer.on("post", "/resources/sending-list/save", [],
-      async (request: Request, response: Response) => {
-        const userId = "clwnwdr5k00003wu0u19tre8y";
+    httpServer.on("post", "/resources/sending-list/save", [verifyToken],
+      async (request: Request & { user?: string }, response: Response) => {
+        const userId = request.user;
         if (!userId) {
           return response.status(HttpStatusCode.UNPROCESSABLE_ENTITY).send({ message: "Sessin ID is missing!" });
         }
@@ -49,8 +48,7 @@ export default class ResourcesController {
           return response.status(HttpStatusCode.BAD_REQUEST);
         }
       })
-
-    httpServer.on("get", "/resources/chats/get-all/:sessionId", [],
+    httpServer.on("get", "/resources/chats/get-all/:sessionId", [verifyToken],
       async (request: Request, response: Response) => {
         const sessionId = request.params.sessionId
         if (!sessionId) {

@@ -13,13 +13,13 @@ export default class WhatsappController {
         await whatsappSessionsService.createSession({ userId: request.user as string });
         return response.status(200).send();
       });
-
-    httpServer.on("get", "/whatsapp/session/active-sessions", [], async (request: Request, response: Response) => {
-      const result = await whatsappSessionsService.countActiveSessions();
-      return response.json(result).status(200);
-    });
-
-    httpServer.on("get", "/whatsapp/get-chats/:sessionId", [], async (request: Request, response: Response) => {
+    httpServer.on("get", "/whatsapp/session/active-sessions", [verifyToken],
+      async (request: Request, response: Response) => {
+        const result = await whatsappSessionsService.countActiveSessions();
+        return response.json(result).status(200);
+      });
+    httpServer.on("get", "/whatsapp/get-chats/:sessionId", [verifyToken], 
+    async (request: Request, response: Response) => {
       const sessionId = request.params.sessionId as string;
       const result = await whatsappSessionsService.getChats(sessionId);
       return response.json(result).status(200);

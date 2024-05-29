@@ -15,6 +15,7 @@ import ResourcesRepository from "./database/prisma-repositories/ResourcesReposit
 import GetAllChatsService from "./app/services/GetAllChats";
 import { CreateSendingListService } from "./app/services/CreateSendingList";
 import AuthenticateUserService from "./app/services/AuthenticateUser";
+import StripeController from "./app/controllers/StripeController";
 
 dotenv.config();
 const app = new ExpressAdapter();
@@ -31,6 +32,7 @@ const authenticateUserService = new AuthenticateUserService(userRepository);
 new UserController(app, createUserService, authenticateUserService);
 new WhatsappController(app, whatsappSessionsService);
 new ResourcesController(app, saveManyChatsService, getAllChatsService, createSendingList);
+new StripeController(app);
 
 const server = http.createServer(app.getServer())
 

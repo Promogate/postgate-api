@@ -14,9 +14,6 @@ class UserRepository implements CreateUserRepository, FindUserByEmailRepository 
           email: input.email,
           password: input.password,
           username: input.username,
-          userSubscription: {
-            create: {}
-          }
         }
       });
       return user;

@@ -18,7 +18,7 @@ export default class AuthenticateUserService implements AuthenticateUser {
       if (!passwordMatch(user.password, input.password)) {
         throw new AppError({ message: "Usuário ou senha incorretos. Tente novamente.", statusCode: HttpStatusCode.UNAUTHORIZED })
       }
-      const token = sign({ id: user.id }, process.env.JWT_SECRET as string, { expiresIn: "1d" });
+      const token = sign({ id: user.id, email: user.email }, process.env.JWT_SECRET as string, { expiresIn: "1d" });
       return {
         token: token
       }

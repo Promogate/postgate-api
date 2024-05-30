@@ -37,14 +37,15 @@ model UserSubscription {
 }
 
 model WhatsappSession {
-  id      String  @id @default(cuid())
-  session String?
-  status  String?
-  qr      String?
-  retries Int?    @default(0)
-  user    User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId  String?
-  chats   Chats[]
+  id           String        @id @default(cuid())
+  session      String?
+  status       String?
+  qr           String?
+  retries      Int?          @default(0)
+  user         User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       String?
+  chats        Chats[]
+  sendingLists SendingList[]
 }
 
 model Chats {
@@ -61,7 +62,8 @@ model Workflow {
   id                String              @id @default(cuid())
   title             String
   description       String?
-  messages          String?
+  nodes             String?
+  edges             String?
   scheduledWorkflow ScheduledWorkflow[]
 
   user   User?   @relation(fields: [userId], references: [id])
@@ -74,8 +76,10 @@ model SendingList {
   list              String?
   scheduledWorkflow ScheduledWorkflow[]
 
-  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId String?
+  user              User?            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId            String?
+  whatsappSession   WhatsappSession? @relation(fields: [whatsappSessionId], references: [id], onDelete: Cascade)
+  whatsappSessionId String?
 }
 
 model ScheduledWorkflow {

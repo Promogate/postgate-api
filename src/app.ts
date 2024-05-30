@@ -30,7 +30,7 @@ const createSendingList = new CreateSendingListService(resourcesRepository);
 const authenticateUserService = new AuthenticateUserService(userRepository);
 
 new UserController(app, createUserService, authenticateUserService);
-new WhatsappController(app, whatsappSessionsService);
+new WhatsappController(app, whatsappSessionsService, saveManyChatsService);
 new ResourcesController(app, saveManyChatsService, getAllChatsService, createSendingList);
 new StripeController(app);
 

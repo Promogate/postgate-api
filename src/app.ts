@@ -1,4 +1,6 @@
 import dotenv from "dotenv";
+import http from "http";
+
 import { ExpressAdapter } from "./app/adapters/ExpressAdapter";
 import UserController from "./app/controllers/UserController";
 import CreateUserService from "./app/services/CreateUserService";
@@ -10,6 +12,12 @@ import WhatsappRepository from "./database/prisma-repositories/WhatsappRepositor
 import ResourcesController from "./app/controllers/ResourcesController";
 import SaveManyWhatsappChatService from "./app/services/SaveManyWhatsappChatService";
 import ResourcesRepository from "./database/prisma-repositories/ResourcesRepository";
+import GetAllChatsService from "./app/services/GetAllChats";
+import { CreateSendingListService } from "./app/services/CreateSendingList";
+import AuthenticateUserService from "./app/services/AuthenticateUser";
+import StripeController from "./app/controllers/StripeController";
+import SchedulerController from "./app/controllers/SchedulerController";
+import MessageController from "./app/controllers/MessageController";
 
 dotenv.config();
 const app = new ExpressAdapter();
@@ -19,9 +27,17 @@ const whatsappRepository = new WhatsappRepository(prisma);
 const whatsappSessionsService = new WhatsappSessionsService(whatsappRepository);
 const resourcesRepository = new ResourcesRepository(prisma);
 const saveManyChatsService = new SaveManyWhatsappChatService(resourcesRepository);
+const getAllChatsService = new GetAllChatsService(resourcesRepository);
+const createSendingList = new CreateSendingListService(resourcesRepository);
+const authenticateUserService = new AuthenticateUserService(userRepository);
 
-new UserController(app, createUserService);
-new WhatsappController(app, whatsappSessionsService);
-new ResourcesController(app, saveManyChatsService);
+new UserController(app, createUserService, authenticateUserService);
+new WhatsappController(app, whatsappSessionsService, saveManyChatsService);
+new ResourcesController(app, saveManyChatsService, getAllChatsService, createSendingList);
+new StripeController(app);
+new SchedulerController(app);
+new MessageController(app, whatsappSessionsService);
 
-export default app;
+const server = http.createServer(app.getServer())
+
+export default server;

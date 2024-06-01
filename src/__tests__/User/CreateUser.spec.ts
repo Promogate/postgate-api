@@ -1,4 +1,4 @@
-import api from "../../lib/axios";
+import api from "../../lib/n8n";
 
 describe("User Suite", () => {
   it.skip("should ensure create route is accessable", async () => {

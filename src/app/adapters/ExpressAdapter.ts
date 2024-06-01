@@ -1,4 +1,4 @@
-import express, { NextFunction, Request, Response, Express, request } from "express";
+import express, { NextFunction, Request, Response, Express } from "express";
 const asyncErrors = require("express-async-errors");
 import cors from "cors";
 import http from "http";
@@ -18,7 +18,11 @@ export class ExpressAdapter implements HttpServer {
 
     this.app = express();
     this.app.use(cors());
-    this.app.use(express.json());
+    this.app.use(express.json({
+      verify: function (req: Request & { rawBody?: Buffer }, res, buf, encoding) {
+        req.rawBody = buf
+      },
+    }));
     this.app.use(express.static(path.join(__dirname, "../../../public")));
 
     this.app.use(async (err: Error, req: Request, res: Response, _: NextFunction) => {

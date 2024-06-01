@@ -11,7 +11,6 @@ export const initIO = (httpServer: Server) => {
     cors: {
       origin: "http://localhost:3000", // Replace with your frontend URL
       methods: ["GET", "POST"],
-      credentials: true,
     },
   });
 

@@ -28,7 +28,8 @@ class CreateUserService implements CreateUser {
         email: user.email
       })
       return {
-        token: token
+        token: token,
+        user
       }
     } catch (error: any) {
       logger.error(`[CreateUserService] - ${error.message}`);

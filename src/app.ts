@@ -16,6 +16,8 @@ import GetAllChatsService from "./app/services/GetAllChats";
 import { CreateSendingListService } from "./app/services/CreateSendingList";
 import AuthenticateUserService from "./app/services/AuthenticateUser";
 import StripeController from "./app/controllers/StripeController";
+import SchedulerController from "./app/controllers/SchedulerController";
+import MessageController from "./app/controllers/MessageController";
 
 dotenv.config();
 const app = new ExpressAdapter();
@@ -33,6 +35,8 @@ new UserController(app, createUserService, authenticateUserService);
 new WhatsappController(app, whatsappSessionsService, saveManyChatsService);
 new ResourcesController(app, saveManyChatsService, getAllChatsService, createSendingList);
 new StripeController(app);
+new SchedulerController(app);
+new MessageController(app, whatsappSessionsService);
 
 const server = http.createServer(app.getServer())
 

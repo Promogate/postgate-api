@@ -83,8 +83,9 @@ model SendingList {
 }
 
 model ScheduledWorkflow {
-  id        String   @id @default(cuid())
-  startTime DateTime
+  id                String @id @default(cuid())
+  startTime         String
+  whatsappSessionId String
 
   user          User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId        String?

@@ -9,5 +9,10 @@ export namespace AuthenticateUser {
   }
   export type Ouput = {
     token: string;
+    user: {
+      id: string;
+      email: string;
+      username: string | undefined | null;
+    }
   }
 }

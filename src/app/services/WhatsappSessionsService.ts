@@ -38,7 +38,11 @@ export default class WhatsappSessionsService {
 
   async createSession(input: CreateSession.Input) {
     try {
-      const { id } = await this.whatsappRepository.createSession({ userId: input.userId });
+      const { id } = await this.whatsappRepository.createSession({
+        userId: input.userId,
+        name: input.name,
+        description: input.description
+      });
       const whatsapp: Session = new Client({
         authStrategy: new LocalAuth({ clientId: id }),
         webVersionCache: {

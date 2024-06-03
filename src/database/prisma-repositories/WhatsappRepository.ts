@@ -29,7 +29,9 @@ export default class WhatsappRepository implements
     try {
       const session = await this.database.whatsappSession.create({
         data: {
-          userId: input.userId
+          userId: input.userId,
+          name: input.name,
+          description: input.description
         }
       });
       return { id: session.id };

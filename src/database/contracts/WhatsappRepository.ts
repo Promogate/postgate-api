@@ -18,6 +18,8 @@ export interface CreateSession {
 export namespace CreateSession {
   export type Input = {
     userId: string;
+    name?: string;
+    description?: string;
   }
   export type Output = {
     id: string

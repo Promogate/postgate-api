@@ -18,7 +18,12 @@ export default class WhatsappController {
       "/whatsapp/session/create",
       [verifyToken],
       async (request: Request & { user?: string }, response: Response) => {
-        await whatsappSessionsService.createSession({ userId: request.user as string });
+        const body = request.body;
+        await whatsappSessionsService.createSession({
+          userId: request.user as string,
+          name: body.name,
+          description: body.description
+        });
         return response.status(200).send();
       });
     httpServer.on(
@@ -61,6 +66,20 @@ export default class WhatsappController {
         try {
           const result = await whatsappSessionsService.getChats(sessionId);
           await saveManyChatsService.execute({ chats: result, sessionId: sessionId });
+          return response.status(HttpStatusCode.OK).send();
+        } catch (error: any) {
+          logger.error(error.message);
+          return response.status(HttpStatusCode.BAD_REQUEST);
+        }
+      });
+    httpServer.on("delete", "/whatsapp/session/:sessionId", [verifyToken],
+      async (request: Request, response: Response) => {
+        const sessionId = request.params.sessionId as string;
+        if (!sessionId) {
+          return response.status(HttpStatusCode.UNPROCESSABLE_ENTITY).send({ message: "Sessin ID is missing!" });
+        }
+        try {
+          await prisma.whatsappSession.delete({ where: { id: sessionId } });
           return response.status(HttpStatusCode.OK).send();
         } catch (error: any) {
           logger.error(error.message);

@@ -20,7 +20,12 @@ export default class AuthenticateUserService implements AuthenticateUser {
       }
       const token = sign({ id: user.id, email: user.email }, process.env.JWT_SECRET as string, { expiresIn: "1d" });
       return {
-        token: token
+        token: token,
+        user: {
+          id: user.id,
+          email: user.email,
+          username: user.username
+        }
       }
     } catch (error: any) {
       logger.info(`[AuthenticateUserService] - ${error.message}`);

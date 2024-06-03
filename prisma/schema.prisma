@@ -38,6 +38,8 @@ model UserSubscription {
 
 model WhatsappSession {
   id           String        @id @default(cuid())
+  name         String?
+  description  String?
   session      String?
   status       String?
   qr           String?

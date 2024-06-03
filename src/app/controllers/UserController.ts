@@ -15,8 +15,8 @@ class UserController {
     });
     httpServer.on("post", "/user/login", [], async (request: Request, response: Response) => {
       const body = request.body;
-      const { token } = await authenticateUserService.execute(body);
-      return response.status(200).json({ token });
+      const { token, user } = await authenticateUserService.execute(body);
+      return response.status(200).json({ token, user });
     });
   }
 }

@@ -40,7 +40,7 @@ export default class ResourcesController {
         try {
           await createSendingList.execute({
             chats: body.chats,
-            name: body.name,
+            name: body.name || crypto.randomUUID(),
             userId: userId
           });
           return response.status(HttpStatusCode.CREATED).send();

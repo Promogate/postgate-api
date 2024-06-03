@@ -1,13 +1,18 @@
 import { Client, LocalAuth } from "whatsapp-web.js";
-import qrCode from "qrcode-terminal";
+import { WhatsappSession } from "@prisma/client";
 
 import logger from "../../utils/logger";
 import AppError from "../../helpers/AppError";
 import { HttpStatusCode } from "../../helpers/HttpStatusCode";
-import { CountActiveSessions, CreateSession, GetAllSessions, GetSession, UpdateSession } from "../../database/contracts/WhatsappRepository";
+import {
+  CountActiveSessions,
+  CreateSession,
+  GetAllSessions,
+  GetSession,
+  UpdateSession
+} from "../../database/contracts/WhatsappRepository";
 import { Session } from "../../utils/@types";
 import { stringifyCircularJSON } from "../../utils/stringifyCircularJSON";
-import { WhatsappSession } from "@prisma/client";
 
 export default class WhatsappSessionsService {
   sessions: Session[] = []
@@ -69,12 +74,15 @@ export default class WhatsappSessionsService {
 
       whatsapp.on("qr", async (qr) => {
         logger.info(`Session: ${id}`);
-        qrCode.generate(qr, { small: true });
-        await this.whatsappRepository.update({ id: id, qr: qr, status: "qrcode", retries: 0 });
-        const sessionIndex = this.sessions.findIndex(session => session.id === id);
-        if (sessionIndex === -1) {
-          whatsapp.id = id;
-          this.sessions.push(whatsapp);
+        try {
+          await this.whatsappRepository.update({ id: id, qr: qr, status: "qrcode", retries: 0 }).catch(() => { return });
+          const sessionIndex = this.sessions.findIndex(session => session.id === id);
+          if (sessionIndex === -1) {
+            whatsapp.id = id;
+            this.sessions.push(whatsapp);
+          }
+        } catch (error: any) {
+          logger.error(error.message);
         }
       });
 
@@ -83,6 +91,7 @@ export default class WhatsappSessionsService {
       });
 
       whatsapp.on("auth_failure", async (message) => {
+        logger.info("Here!");
         logger.error(`Session: ${id} Authentication failure, reason: ${message}`);
         const session = await this.whatsappRepository.getSession({ id: id });
         if (!session || !session.retries) throw new AppError({ message: "", statusCode: HttpStatusCode.BAD_REQUEST });
@@ -159,13 +168,16 @@ export default class WhatsappSessionsService {
       whatsapp.initialize();
 
       whatsapp.on("qr", async (qr) => {
-        logger.info(`Session: ${whatsappSession.id}`);
-        qrCode.generate(qr, { small: true });
-        await this.whatsappRepository.update({ id: whatsappSession.id, qr: qr, status: "qrcode", retries: 0 });
-        const sessionIndex = this.sessions.findIndex(session => session.id === session.id);
-        if (sessionIndex === -1) {
-          whatsapp.id = whatsappSession.id;
-          this.sessions.push(whatsapp);
+        logger.info(`Session: ${whatsappSession.id} - QRCode Ready`);
+        try {
+          await this.whatsappRepository.update({ id: whatsappSession.id, qr: qr, status: "qrcode", retries: 0 });
+          const sessionIndex = this.sessions.findIndex(session => session.id === session.id);
+          if (sessionIndex === -1) {
+            whatsapp.id = whatsappSession.id;
+            this.sessions.push(whatsapp);
+          }
+        } catch (error: any) {
+          logger.error(error.message);
         }
       });
 

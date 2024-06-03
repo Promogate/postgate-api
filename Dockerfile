@@ -4,6 +4,7 @@ FROM node:20-alpine AS base
 # Configurações comuns
 WORKDIR /postgate
 COPY package.json yarn.lock ./
+COPY ./prisma ./prisma
 
 # Estágio de dependências
 FROM base AS deps
@@ -48,4 +49,4 @@ COPY src ./src
 EXPOSE 8090
 
 # Comando para rodar a aplicação
-CMD ["node", "src/server.js"]
+CMD ["yarn", "start:prod"]

@@ -5,9 +5,9 @@
   "author": "Augusto Dias <gutodiasdev@gmail.com>",
   "license": "MIT",
   "scripts": {
-    "build": "yarn tsc",
+    "build": "rimraf dist && yarn tsc",
     "start:dev": "nodemon --config nodemon.json src/server.ts",
-    "start:prod": "node src/server.js",
+    "start:prod": "node dist/server.js",
     "test": "jest --runInBand",
     "test:watch": "yarn test --watch"
   },

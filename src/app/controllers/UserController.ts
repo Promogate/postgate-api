@@ -9,6 +9,9 @@ class UserController {
     createUserService: CreateUser,
     authenticateUserService: AuthenticateUser
   ) {
+    httpServer.on("get", "/", [], (request: Request, response: Response) => {
+      return response.json(200).send("Silence is golden!");
+    });
     httpServer.on("post", "/user/create", [], async (request: Request, response: Response) => {
       const { token } = await createUserService.execute(request.body);
       return response.status(201).json({ token });

@@ -25,7 +25,7 @@ COPY --from=deps /postgate/node_modules ./node_modules
 COPY . .
 
 # Gere o cliente Prisma
-RUN yarn prisma generate
+RUN npx prisma generate
 
 # Compile o projeto
 RUN yarn build

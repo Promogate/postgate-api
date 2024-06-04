@@ -66,7 +66,7 @@ export default class WhatsappSessionsService {
             "--no-zygote",
             "--disable-gpu"
           ],
-          executablePath: "/usr/bin/chromium-browser"
+          executablePath: process.env.BROWSER_PATH
         }
       });
 
@@ -161,7 +161,7 @@ export default class WhatsappSessionsService {
             "--no-zygote",
             "--disable-gpu"
           ],
-          executablePath: "/usr/bin/chromium-browser"
+          executablePath: process.env.BROWSER_PATH
         }
       });
 

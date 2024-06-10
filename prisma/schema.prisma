@@ -9,7 +9,7 @@ generator client {
 }
 
 datasource db {
-  provider = "cockroachdb"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -52,7 +52,7 @@ model WhatsappSession {
 
 model Chats {
   id           String  @id @default(cuid())
-  whatsappId   String
+  whatsappId   String  @unique
   whatsappName String
   isGroup      Boolean @default(false)
 

@@ -3,16 +3,23 @@ import { GetAllChatsRespository, SaveManyChats, SaveSendingList } from "../contr
 import logger from "../../utils/logger";
 import AppError from "../../helpers/AppError";
 import { HttpStatusCode } from "../../helpers/HttpStatusCode";
+import prisma from "../../lib/prisma";
 
 export default class ResourcesRepository implements SaveManyChats, GetAllChatsRespository, SaveSendingList {
   constructor(readonly database: PrismaClient) { }
 
   async saveMany(input: SaveManyChats.Input): Promise<void> {
     try {
-      await this.database.chats.createMany({
-        data: input,
-        skipDuplicates: true
-      });
+      prisma.chats.createMany({
+        skipDuplicates: true,
+        data: input
+      })
+      .then((chats) => {
+        logger.info(`Chats processed: ${chats.count}`);
+      })
+      .catch((error) => {
+        logger.error("failed on createMany")
+      })
     } catch (error: any) {
       logger.error(`[WhatsappRepository|saveMany]: ${error.message}`);
       throw new AppError({

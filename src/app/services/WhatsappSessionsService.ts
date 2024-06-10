@@ -25,7 +25,9 @@ export default class WhatsappSessionsService {
       UpdateSession &
       GetAllSessions
   ) {
-    this.resumeAllSesssions();
+    if (process.env.WHATSAPP_ENGINE === "whatsappweb") {
+      this.resumeWhatsappwebSesssions();
+    }
   }
 
   async countActiveSessions(): Promise<{ activeSessions: number }> {
@@ -130,7 +132,7 @@ export default class WhatsappSessionsService {
     }
   }
 
-  async resumeAllSesssions() {
+  async resumeWhatsappwebSesssions() {
     logger.info("Resuming all sessions");
     const sessions = await this.whatsappRepository.getAllSessions();
     if (sessions.length === 0) {

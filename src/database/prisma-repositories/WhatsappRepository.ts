@@ -61,7 +61,7 @@ export default class WhatsappRepository implements
 
   async update(input: UpdateSession.Input): Promise<void> {
     try {
-      await this.database.whatsappSession.update({
+      await this.database.whatsappSession.updateMany({
         where: { id: input.id },
         data: input
       });

@@ -20,6 +20,8 @@ import AuthenticateUserService from "./app/services/AuthenticateUser";
 import StripeController from "./app/controllers/StripeController";
 import SchedulerController from "./app/controllers/SchedulerController";
 import MessageController from "./app/controllers/MessageController";
+import CodechatService from "./app/services/CodechatService";
+import CodechatController from "./app/controllers/CodechatController";
 
 const bootstrap = () => {
   dotenv.config();
@@ -33,6 +35,7 @@ const bootstrap = () => {
   const getAllChatsService = new GetAllChatsService(resourcesRepository);
   const createSendingList = new CreateSendingListService(resourcesRepository);
   const authenticateUserService = new AuthenticateUserService(userRepository);
+  const codechatService = new CodechatService(whatsappRepository);
 
   new UserController(app, createUserService, authenticateUserService);
   new WhatsappController(app, whatsappSessionsService, saveManyChatsService);
@@ -40,6 +43,7 @@ const bootstrap = () => {
   new StripeController(app);
   new SchedulerController(app);
   new MessageController(app, whatsappSessionsService);
+  new CodechatController(app, codechatService);
 
   const server = http.createServer(app.getServer())
   app.listen(process.env.PORT);

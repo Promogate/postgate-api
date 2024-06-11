@@ -20,6 +20,7 @@ export namespace CreateSession {
     userId: string;
     name?: string;
     description?: string;
+    token?: string;
   }
   export type Output = {
     id: string
@@ -48,6 +49,7 @@ export namespace UpdateSession {
     status?: string;
     qr?: string;
     retries?: number;
+    token?: string;
   }
 }
 

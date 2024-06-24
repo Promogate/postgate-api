@@ -24,7 +24,18 @@ export default class SchedulerController {
               whatsappSessionId
             }
           });
-          const sendingList = await prisma.sendingList.findUnique({ where: { id: listId } });
+          const sendingList = await prisma.sendingList.findUnique({
+            where: {
+              id: listId
+            },
+            include: {
+              whatsappSession: {
+                select: {
+                  token: true
+                }
+              }
+            }
+          });
           const workflow = await prisma.workflow.findUnique({ where: { id: body.chosenWorkflow } });
           if (!sendingList || !workflow) {
             return response.status(HttpStatusCode.BAD_REQUEST).send("Some missing properties");
@@ -38,7 +49,8 @@ export default class SchedulerController {
             sendingList: parsedSendingList,
             messages: parsedMessages,
             startTime: scheduled.startTime,
-            whatsappSessionId
+            whatsappSessionId,
+            token: sendingList.whatsappSession?.token
           });
           return response.status(HttpStatusCode.CREATED).send("Agendamento");
         } catch (error: any) {

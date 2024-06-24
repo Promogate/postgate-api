@@ -35,10 +35,10 @@ const bootstrap = () => {
   const getAllChatsService = new GetAllChatsService(resourcesRepository);
   const createSendingList = new CreateSendingListService(resourcesRepository);
   const authenticateUserService = new AuthenticateUserService(userRepository);
-  const codechatService = new CodechatService(whatsappRepository);
+  const codechatService = new CodechatService(whatsappRepository, resourcesRepository);
 
   new UserController(app, createUserService, authenticateUserService);
-  new WhatsappController(app, whatsappSessionsService, saveManyChatsService);
+  new WhatsappController(app, whatsappSessionsService, saveManyChatsService, codechatService);
   new ResourcesController(app, saveManyChatsService, getAllChatsService, createSendingList);
   new StripeController(app);
   new SchedulerController(app);

@@ -6,12 +6,14 @@ import { HttpStatusCode } from "../../helpers/HttpStatusCode";
 import prisma from "../../lib/prisma";
 import { SaveManyWhatsappChats } from "../interfaces/SaveManyWhatsappChats";
 import logger from "../../utils/logger";
+import CodechatService from "../services/CodechatService";
 
 export default class WhatsappController {
   constructor(
     httpServer: HttpServer,
     whatsappSessionsService: WhatsappSessionsService,
-    saveManyChatsService: SaveManyWhatsappChats
+    saveManyChatsService: SaveManyWhatsappChats,
+    codechatService: CodechatService
   ) {
     httpServer.on(
       "post",
@@ -31,6 +33,7 @@ export default class WhatsappController {
       "/whatsapp/sessions",
       [verifyToken],
       async (request: Request & { user?: string }, response: Response) => {
+        const body = request.body as { token: string };
         try {
           const userId = request.user;
           if (!userId) {
@@ -39,6 +42,20 @@ export default class WhatsappController {
           const clients = await prisma.whatsappSession.findMany({
             where: {
               userId: userId
+            }
+          });
+          if (!clients) {
+            return response.json({ message: "Não há clients criados pelo usuário" }).status(200);
+          }
+          clients.forEach(async (client) => {
+            if (client.status === "" || !client.status) {
+              const connectionsState = await codechatService.isInstanceConnected({
+                instanceName: client.id,
+                token: body.token
+              });
+              if (connectionsState.state === "open") {
+                await codechatService.updateConnectionState({ id: client.id, status: "CONNECTED" });
+              }
             }
           });
           return response.status(HttpStatusCode.OK).json(clients);

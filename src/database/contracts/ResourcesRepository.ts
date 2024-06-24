@@ -15,6 +15,14 @@ export namespace SaveManyChats {
   export type Input = Chat[];
 }
 
+export interface SaveChat {
+  saveChat(input: SaveChat.Input): Promise<void>
+}
+
+export namespace SaveChat {
+  export type Input = Chat;
+}
+
 export interface GetAllChatsRespository {
   getAllChats(input: GetAllChatsRespository.Input): Promise<GetAllChatsRespository.Output>
 }

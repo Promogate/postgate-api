@@ -3,6 +3,7 @@ import logger from "../../utils/logger";
 import AppError from "../../helpers/AppError";
 import { HttpStatusCode } from "../../helpers/HttpStatusCode";
 import { CountActiveSessions, CreateSession, GetAllSessions, GetSession, UpdateSession } from "../contracts/WhatsappRepository";
+import { SaveChat, SaveManyChats } from "../contracts/ResourcesRepository";
 
 export default class WhatsappRepository implements
   CountActiveSessions,

@@ -9,7 +9,7 @@ let io: SocketIO;
 export const initIO = (httpServer: Server) => {
   io = new SocketIO(httpServer, {
     cors: {
-      origin: process.env.APP_URL,
+      origin: "*",
       methods: ["GET", "POST"],
     },
   });

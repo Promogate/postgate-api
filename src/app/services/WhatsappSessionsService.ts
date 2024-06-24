@@ -25,7 +25,9 @@ export default class WhatsappSessionsService {
       UpdateSession &
       GetAllSessions
   ) {
-    this.resumeAllSesssions();
+    if (process.env.WHATSAPP_ENGINE === "whatsappweb") {
+      this.resumeWhatsappwebSesssions();
+    }
   }
 
   async countActiveSessions(): Promise<{ activeSessions: number }> {
@@ -49,7 +51,9 @@ export default class WhatsappSessionsService {
         description: input.description
       });
       const whatsapp: Session = new Client({
-        authStrategy: new LocalAuth({ clientId: id }),
+        authStrategy: new LocalAuth({
+          clientId: id,
+        }),
         webVersionCache: {
           type: "remote",
           remotePath:
@@ -66,7 +70,7 @@ export default class WhatsappSessionsService {
             "--no-zygote",
             "--disable-gpu"
           ],
-          executablePath: "/usr/bin/chromium-browser"
+          executablePath: process.env.BROWSER_PATH
         }
       });
 
@@ -128,7 +132,7 @@ export default class WhatsappSessionsService {
     }
   }
 
-  async resumeAllSesssions() {
+  async resumeWhatsappwebSesssions() {
     logger.info("Resuming all sessions");
     const sessions = await this.whatsappRepository.getAllSessions();
     if (sessions.length === 0) {
@@ -136,6 +140,7 @@ export default class WhatsappSessionsService {
     }
     if (sessions.length > 0) {
       sessions.forEach(session => {
+        logger.info("Resuming session: " + session.id);
         this.startWhatsappSession(session);
       });
     }
@@ -143,8 +148,15 @@ export default class WhatsappSessionsService {
 
   async startWhatsappSession(whatsappSession: WhatsappSession) {
     try {
+      let sessionConfig;
+      if (whatsappSession && whatsappSession.session) {
+        sessionConfig = JSON.parse(whatsappSession.session)
+      }
       const whatsapp: Session = new Client({
-        authStrategy: new LocalAuth({ clientId: whatsappSession.id }),
+        session: sessionConfig,
+        authStrategy: new LocalAuth({ 
+          clientId: whatsappSession.id,
+        }),
         webVersionCache: {
           type: "remote",
           remotePath:
@@ -161,7 +173,7 @@ export default class WhatsappSessionsService {
             "--no-zygote",
             "--disable-gpu"
           ],
-          executablePath: "/usr/bin/chromium-browser"
+          executablePath: process.env.BROWSER_PATH
         }
       });
 

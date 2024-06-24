@@ -1,4 +1,4 @@
-import { Chat } from "whatsapp-web.js"
+import { Chat, Contact } from "whatsapp-web.js"
 
 export interface SaveManyWhatsappChats {
   execute(input: SaveManyWhatsappChats.Input): Promise<void>

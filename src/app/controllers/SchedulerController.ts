@@ -5,6 +5,7 @@ import logger from "../../utils/logger";
 import { HttpStatusCode } from "../../helpers/HttpStatusCode";
 import prisma from "../../lib/prisma";
 import n8n from "../../lib/n8n";
+import { buildN8nUrl } from "../../utils/buildN8nUrl";
 
 export default class SchedulerController {
   constructor(httpServer: HttpServer) {
@@ -23,7 +24,18 @@ export default class SchedulerController {
               whatsappSessionId
             }
           });
-          const sendingList = await prisma.sendingList.findUnique({ where: { id: listId } });
+          const sendingList = await prisma.sendingList.findUnique({
+            where: {
+              id: listId
+            },
+            include: {
+              whatsappSession: {
+                select: {
+                  token: true
+                }
+              }
+            }
+          });
           const workflow = await prisma.workflow.findUnique({ where: { id: body.chosenWorkflow } });
           if (!sendingList || !workflow) {
             return response.status(HttpStatusCode.BAD_REQUEST).send("Some missing properties");
@@ -33,11 +45,12 @@ export default class SchedulerController {
           }
           const parsedSendingList = JSON.parse(sendingList.list);
           const parsedMessages = JSON.parse(workflow.nodes);
-          await n8n.post("/webhook-test/schedule", {
+          await n8n.post(buildN8nUrl("/schedule"), {
             sendingList: parsedSendingList,
             messages: parsedMessages,
             startTime: scheduled.startTime,
-            whatsappSessionId
+            whatsappSessionId,
+            token: sendingList.whatsappSession?.token
           });
           return response.status(HttpStatusCode.CREATED).send("Agendamento");
         } catch (error: any) {

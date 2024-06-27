@@ -58,5 +58,21 @@ export default class SchedulerController {
           return response.status(HttpStatusCode.BAD_REQUEST).send(error.message);
         }
       });
+
+    httpServer.on("get", "/scheduler/agenda", [verifyToken],
+      async (request: Request & { user?: string }, response: Response) => {
+        const user = request.user;
+        try {
+          const result = await prisma.scheduledWorkflow.findMany({
+            where: {
+              userId: user
+            }
+          });
+          return response.json(result).status(HttpStatusCode.OK);
+        } catch (error: any) {
+          logger.error(error);
+          return response.status(HttpStatusCode.BAD_REQUEST).send(error.message);
+        }
+      });
   }
 }

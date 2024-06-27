@@ -47,7 +47,7 @@ export default class CodechatController {
           const result = await codechatService.syncChats({ instanceName: instanceId, token: body.token });
           return response.json(result).status(HttpStatusCode.OK);
         } catch (error: any) {
-          logger.error(error.message);
+          logger.error(error);
           throw new AppError({ message: error.message, statusCode: HttpStatusCode.BAD_REQUEST });
         }
       }

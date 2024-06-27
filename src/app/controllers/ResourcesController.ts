@@ -172,6 +172,23 @@ export default class ResourcesController {
           logger.error(error.message);
           return response.status(HttpStatusCode.BAD_REQUEST).send();
         }
-      })
+      });
+    httpServer.on("delete", "/resources/workflows/:workflowId", [verifyToken],
+      async (request: Request, response: Response) => {
+        const { workflowId } = request.params as { workflowId: string };
+        const nodes = JSON.stringify(request.body.nodes);
+        const edges = JSON.stringify(request.body.edges);
+        try {
+          const result = await prisma.workflow.delete({
+            where: {
+              id: workflowId
+            }
+          });
+          return response.status(HttpStatusCode.OK).json(result);
+        } catch (error: any) {
+          logger.error(error.message);
+          return response.status(HttpStatusCode.BAD_REQUEST).send();
+        }
+      });
   }
 }

@@ -3,7 +3,7 @@ import logger from "../utils/logger";
 import AppError from "../helpers/AppError";
 import { HttpStatusCode } from "../helpers/HttpStatusCode";
 
-const codechat = () => {
+export const codechat = () => {
   if (process.env.WHATSAPP_ENGINE === "codechat" && !process.env.CODECHAT_URL) {
     logger.error("URL Codechat não configurada");
     throw new AppError({ message: "URL Codechat não foi declarada", statusCode: HttpStatusCode.NOT_FOUND });
@@ -16,5 +16,3 @@ const codechat = () => {
     }
   })
 }
-
-export default codechat;

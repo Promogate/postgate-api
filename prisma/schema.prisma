@@ -89,6 +89,7 @@ model ScheduledWorkflow {
   id                String @id @default(cuid())
   startTime         String
   whatsappSessionId String
+  status            String @default("SCHEDULED")
 
   user          User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId        String?

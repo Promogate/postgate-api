@@ -30,7 +30,7 @@ export default class ResourcesRepository implements SaveManyChats, GetAllChatsRe
     } catch (error: any) {
       logger.error(`[WhatsappRepository|saveChat]: ${error.message}`);
       throw new AppError({
-        message: error.message,
+        message: error,
         statusCode: HttpStatusCode.BAD_REQUEST
       })
     }

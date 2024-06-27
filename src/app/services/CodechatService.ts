@@ -6,9 +6,9 @@ import { codechat } from "../../lib/codechat";
 import logger from "../../utils/logger";
 import { SaveChat } from "../../database/contracts/ResourcesRepository";
 import checkIfIsGroup from "../../helpers/CheckIfIsAGroup";
-import { error } from "qrcode-terminal";
-import Bluebird from "bluebird";
 import prisma from "../../lib/prisma";
+import Bluebird from "bluebird";
+import retry from "bluebird-retry";
 
 export default class CodechatService {
   client: AxiosInstance
@@ -110,35 +110,39 @@ export default class CodechatService {
         Authorization: `Bearer ${input.token}`
       }
     })
-    try {
-      await Bluebird.map(result.data, async (rawContact) => {
-        if (checkIfIsGroup(rawContact.remoteJid)) {
-          const { data } = await this.client.get(`/group/findGroupInfos/${instanceName}`, {
-            params: {
-              groupJid: rawContact.remoteJid
-            },
-            headers: {
-              Authorization: `Bearer ${session.token}`
-            }
-          });
-        } else {
-          
-          const { data } = await this.client.post(`/chat/findContacts/${instanceName}`, {
-            where: {
-              remoteJid: rawContact.remoteJid
-            }
-          }, {
-            headers: {
-              Authorization: `Bearer ${session.token}`
-            }
-          });
-        }
-      }, { concurrency: 10 });
-      return { message: "Syncronized" }
-    } catch (error: any) {
-      logger.error(error);
-      throw new AppError({ message: error.message, statusCode: HttpStatusCode.BAD_REQUEST });
-    }
+    if (!result.data) throw new AppError({ message: "Not found", statusCode: HttpStatusCode.NOT_FOUND });
+    await Bluebird.map(result.data, (item) => retry(async () => {
+      if (checkIfIsGroup(item.remoteJid)) {
+        const { data } = await this.client.get(`/group/findGroupInfos/${instanceName}?groupJid=${item.remoteJid}`, {
+          headers: {
+            Authorization: `Bearer ${session.token}`
+          }
+        });
+        await this.resourcesRepository.saveChat({
+          isGroup: true,
+          whatsappId: data.id,
+          whatsappName: data.subject,
+          whatsappSessionId: session.id
+        })
+      } else {
+        const { data } = await this.client.post(`/chat/findContacts/${instanceName}`, {
+          where: {
+            remoteJid: item.remoteJid
+          }
+        }, {
+          headers: {
+            Authorization: `Bearer ${session.token}`
+          }
+        });
+        await this.resourcesRepository.saveChat({
+          isGroup: false,
+          whatsappId: data[0].remoteJid,
+          whatsappName: data[0].pushName,
+          whatsappSessionId: session.id
+        })
+      }
+    }, { max_tries: 3, interval: 1000 }), { concurrency: 30 });
+    return { message: "Syncronized" }
   }
 
   async findChats(input: { token: string, instanceName: string }) {
@@ -152,6 +156,28 @@ export default class CodechatService {
     } catch (error: any) {
       logger.error(error.message)
       throw new AppError({ message: error.message, statusCode: HttpStatusCode.BAD_REQUEST });
+    }
+  }
+
+  private async processItem(item: any, token: string, instanceName: string) {
+    if (checkIfIsGroup(item.remoteJid)) {
+      const { data } = await this.client.get(`/group/findGroupInfos/${instanceName}?groupJid=${item.remoteJid}`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      return data;
+    } else {
+      const { data } = await this.client.post(`/chat/findContacts/${instanceName}`, {
+        where: {
+          remoteJid: item.remoteJid
+        }
+      }, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      return data;
     }
   }
 }

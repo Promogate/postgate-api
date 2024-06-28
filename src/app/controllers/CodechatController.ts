@@ -39,13 +39,49 @@ export default class CodechatController {
       }
     )
 
-    httpServer.on("get", "/codechat/sync/:instanceId", [verifyToken],
+    httpServer.on("get", "/codechat/get_chats/:instanceId", [verifyToken],
       async (request: Request & { user?: string }, response: Response) => {
         const { instanceId } = request.params as { instanceId: string };
         const body = request.body;
         try {
-          const result = await codechatService.syncChats({ instanceName: instanceId, token: body.token });
+          const result = await codechatService.getChats({ instanceName: instanceId, token: body.token });
           return response.json(result).status(HttpStatusCode.OK);
+        } catch (error: any) {
+          logger.error(error);
+          throw new AppError({ message: error.message, statusCode: HttpStatusCode.BAD_REQUEST });
+        }
+      }
+    )
+
+    httpServer.on("post", "/codechat/sync_chat/:instanceId", [verifyToken],
+      async (request: Request & { user?: string }, response: Response) => {
+        const { instanceId } = request.params as { instanceId: string };
+        const body = request.body;
+        try {
+          await codechatService.processItem({
+            instanceName: instanceId,
+            token: body.token,
+            item: body.item
+          });
+          return response.json({ message: "Processado com sucesso!" }).status(HttpStatusCode.OK);
+        } catch (error: any) {
+          logger.error(error);
+          throw new AppError({ message: error.message, statusCode: HttpStatusCode.BAD_REQUEST });
+        }
+      }
+    )
+
+    httpServer.on("post", "/codechat/sync_chats/:instanceId", [verifyToken],
+      async (request: Request & { user?: string }, response: Response) => {
+        const { instanceId } = request.params as { instanceId: string };
+        const body = request.body;
+        try {
+          await codechatService.processItems({
+            instanceName: instanceId,
+            token: body.token,
+            chats: body.chats
+          });
+          return response.json({ message: "Processado com sucesso!" }).status(HttpStatusCode.OK);
         } catch (error: any) {
           logger.error(error);
           throw new AppError({ message: error.message, statusCode: HttpStatusCode.BAD_REQUEST });

@@ -2,6 +2,8 @@ import axios from "axios";
 import logger from "../utils/logger";
 import AppError from "../helpers/AppError";
 import { HttpStatusCode } from "../helpers/HttpStatusCode";
+import http from "http";
+import https from "https";
 
 export const codechat = () => {
   if (process.env.WHATSAPP_ENGINE === "codechat" && !process.env.CODECHAT_URL) {
@@ -13,6 +15,7 @@ export const codechat = () => {
     baseURL: process.env.CODECHAT_URL,
     headers: {
       ApiKey: process.env.CODECHAT_GLOBAL_TOKEN
-    }
+    },
+    timeout: 65 * 1000
   })
 }

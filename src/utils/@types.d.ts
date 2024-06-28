@@ -10,3 +10,11 @@ export interface BaileysSession extends WASocket {
 }
 
 export type Plans = Record<string, { name: string; description: string; amount: number; level: string }>
+
+export type Chat = {
+  id: string,
+  remoteJid: string,
+  createdAt: string,
+  updatedAt: string,
+  instanceId: string
+}

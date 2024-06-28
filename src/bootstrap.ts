@@ -45,8 +45,11 @@ const bootstrap = () => {
   new MessageController(app, whatsappSessionsService);
   new CodechatController(app, codechatService);
 
-  const server = http.createServer(app.getServer())
+  const server = http.createServer(app.getServer());
+  
   app.listen(process.env.PORT);
+  app.server.keepAliveTimeout = 30 * 1000;
+  app.server.headersTimeout = 35 * 1000;
   initIO(server);
   GracefulShutdown(server);
 }

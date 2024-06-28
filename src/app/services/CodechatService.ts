@@ -9,6 +9,7 @@ import checkIfIsGroup from "../../helpers/CheckIfIsAGroup";
 import prisma from "../../lib/prisma";
 import Bluebird from "bluebird";
 import retry from "bluebird-retry";
+import { Chat } from "../../utils/@types";
 
 export default class CodechatService {
   client: AxiosInstance
@@ -93,7 +94,7 @@ export default class CodechatService {
     }
   }
 
-  async syncChats(input: { token: string, instanceName: string }): Promise<any> {
+  async getChats(input: { token: string, instanceName: string }): Promise<any> {
     const instanceName = input.instanceName;
     const session = await prisma.whatsappSession.findUnique({ where: { id: instanceName } });
     if (!session) {
@@ -110,39 +111,7 @@ export default class CodechatService {
         Authorization: `Bearer ${input.token}`
       }
     })
-    if (!result.data) throw new AppError({ message: "Not found", statusCode: HttpStatusCode.NOT_FOUND });
-    await Bluebird.map(result.data, (item) => retry(async () => {
-      if (checkIfIsGroup(item.remoteJid)) {
-        const { data } = await this.client.get(`/group/findGroupInfos/${instanceName}?groupJid=${item.remoteJid}`, {
-          headers: {
-            Authorization: `Bearer ${session.token}`
-          }
-        });
-        await this.resourcesRepository.saveChat({
-          isGroup: true,
-          whatsappId: data.id,
-          whatsappName: data.subject,
-          whatsappSessionId: session.id
-        })
-      } else {
-        const { data } = await this.client.post(`/chat/findContacts/${instanceName}`, {
-          where: {
-            remoteJid: item.remoteJid
-          }
-        }, {
-          headers: {
-            Authorization: `Bearer ${session.token}`
-          }
-        });
-        await this.resourcesRepository.saveChat({
-          isGroup: false,
-          whatsappId: data[0].remoteJid,
-          whatsappName: data[0].pushName,
-          whatsappSessionId: session.id
-        })
-      }
-    }, { max_tries: 3, interval: 1000 }), { concurrency: 30 });
-    return { message: "Syncronized" }
+    return { chats: JSON.stringify(result.data), sessionToken: session.token }
   }
 
   async findChats(input: { token: string, instanceName: string }) {
@@ -159,25 +128,91 @@ export default class CodechatService {
     }
   }
 
-  private async processItem(item: any, token: string, instanceName: string) {
-    if (checkIfIsGroup(item.remoteJid)) {
-      const { data } = await this.client.get(`/group/findGroupInfos/${instanceName}?groupJid=${item.remoteJid}`, {
+  async processItem(input: { item: any, token: string, instanceName: string }) {
+    if (checkIfIsGroup(input.item.remoteJid)) {
+      const { data } = await this.client.get(`/group/findGroupInfos/${input.instanceName}?groupJid=${input.item.remoteJid}`, {
         headers: {
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${input.token}`
         }
       });
-      return data;
+      await this.resourcesRepository.saveChat({
+        isGroup: true,
+        whatsappId: data.id,
+        whatsappName: data.pushName,
+        whatsappSessionId: input.instanceName
+      })
     } else {
-      const { data } = await this.client.post(`/chat/findContacts/${instanceName}`, {
+      const { data } = await this.client.post(`/chat/findContacts/${input.instanceName}`, {
         where: {
-          remoteJid: item.remoteJid
+          remoteJid: input.item.remoteJid
         }
       }, {
         headers: {
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${input.token}`
         }
       });
+      await this.resourcesRepository.saveChat({
+        isGroup: false,
+        whatsappId: data[0].remoteJid,
+        whatsappName: data[0].pushName,
+        whatsappSessionId: input.instanceName
+      })
       return data;
     }
+  }
+
+  async processItems(input: { chats: string, token: string, instanceName: string }) {
+    const chats = JSON.parse(input.chats) as Chat[];
+    await Bluebird.each(chats, (chat) => retry(async () => {
+      const chatAlreadySync = await prisma.chats.findFirst({
+        where: {
+          whatsappId: chat.remoteJid
+        }
+      })
+      if (chatAlreadySync) return;
+      try {
+        if (checkIfIsGroup(chat.remoteJid)) {
+          retry(async () => {
+            try {              
+              const { data, status } = await this.client.get(`/group/findGroupInfos/${input.instanceName}?groupJid=${chat.remoteJid}`, {
+                headers: {
+                  Authorization: `Bearer ${input.token}`
+                },
+                timeout: 900
+              });
+              if (status !== 200) return;
+              await this.resourcesRepository.saveChat({
+                isGroup: true,
+                whatsappId: data.id,
+                whatsappName: data.subject,
+                whatsappSessionId: input.instanceName
+              })
+            } catch (error) {
+              console.log(error);
+            }
+          }, { max_tries: 10, timeout: 90 * 1000 });
+        } else {
+          const { data, status } = await this.client.post(`/chat/findContacts/${input.instanceName}`, {
+            where: {
+              remoteJid: chat.remoteJid
+            }
+          }, {
+            headers: {
+              Authorization: `Bearer ${input.token}`
+            },
+            timeout: 900
+          });
+          if (status !== 200) return;
+          await this.resourcesRepository.saveChat({
+            isGroup: false,
+            whatsappId: data[0].remoteJid,
+            whatsappName: data[0].pushName,
+            whatsappSessionId: input.instanceName
+          })
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    }, { max_tries: 3, interval: 1000 }));
   }
 }

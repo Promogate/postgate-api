@@ -11,6 +11,7 @@ export default class SchedulerController {
   constructor(httpServer: HttpServer) {
     httpServer.on("post", "/scheduler/workflows", [verifyToken],
       async (request: Request & { user?: string }, response: Response) => {
+        const authToken = request.headers.authorization;
         const userId = request.user;
         const body = request.body as { scheduleTime: string, chosenList: string; chosenWorkflow: string };
         const [listId, whatsappSessionId] = body.chosenList.split("_");
@@ -50,7 +51,9 @@ export default class SchedulerController {
             messages: parsedMessages,
             startTime: scheduled.startTime,
             whatsappSessionId,
-            token: sendingList.whatsappSession?.token
+            token: sendingList.whatsappSession?.token,
+            schedulingId: scheduled.id,
+            authToken
           });
           return response.status(HttpStatusCode.CREATED).send("Agendamento");
         } catch (error: any) {
@@ -69,6 +72,26 @@ export default class SchedulerController {
             }
           });
           return response.json(result).status(HttpStatusCode.OK);
+        } catch (error: any) {
+          logger.error(error);
+          return response.status(HttpStatusCode.BAD_REQUEST).send(error.message);
+        }
+      });
+
+    httpServer.on("post", "/scheduler/n8n/webhook", [verifyToken],
+      async (request: Request & { user?: string }, response: Response) => {
+        console.log("called")
+        const user = request.user;
+        const body = request.body as { event: string, data: { status: string, schedulingId: string } };
+        try {
+          if (body.event === "update.scheduling") {
+            await prisma.scheduledWorkflow.update({
+              where: { id: body.data.schedulingId },
+              data: { status: body.data.status }
+            })
+            return response.status(HttpStatusCode.OK).send();
+          }
+          return response.status(HttpStatusCode.OK).send();
         } catch (error: any) {
           logger.error(error);
           return response.status(HttpStatusCode.BAD_REQUEST).send(error.message);

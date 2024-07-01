@@ -69,6 +69,18 @@ export default class SchedulerController {
           const result = await prisma.scheduledWorkflow.findMany({
             where: {
               userId: user
+            },
+            include: {
+              sendingList: {
+                select: {
+                  name: true
+                }
+              },
+              workflow: {
+                select: {
+                  title: true
+                }
+              }
             }
           });
           return response.json(result).status(HttpStatusCode.OK);

@@ -92,12 +92,11 @@ export default class SchedulerController {
 
     httpServer.on("post", "/scheduler/n8n/webhook", [verifyToken],
       async (request: Request & { user?: string }, response: Response) => {
-        console.log("called")
         const user = request.user;
         const body = request.body as { event: string, data: { status: string, schedulingId: string } };
         try {
           if (body.event === "update.scheduling") {
-            await prisma.scheduledWorkflow.update({
+            await prisma.scheduledWorkflow.updateMany({
               where: { id: body.data.schedulingId },
               data: { status: body.data.status }
             })

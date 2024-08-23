@@ -8,6 +8,7 @@ import AppError from "../../helpers/AppError";
 import { HttpStatusCode } from "../../helpers/HttpStatusCode";
 import logger from "../../utils/logger";
 import path from "path";
+import bodyParser from "body-parser";
 
 export class ExpressAdapter implements HttpServer {
   app: Express;
@@ -15,10 +16,10 @@ export class ExpressAdapter implements HttpServer {
 
   constructor() {
     asyncErrors;
-
     this.app = express();
     this.app.use(cors());
     this.app.use(express.json({
+      limit: "200mb",
       verify: function (req: Request & { rawBody?: Buffer }, res, buf, encoding) {
         req.rawBody = buf
       },

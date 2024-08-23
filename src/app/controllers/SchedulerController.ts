@@ -96,7 +96,8 @@ export default class SchedulerController {
         const body = request.body as { event: string, data: { status: string, schedulingId: string } };
         try {
           if (body.event === "update.scheduling") {
-            await prisma.scheduledWorkflow.updateMany({
+            console.log(body)
+            await prisma.scheduledWorkflow.update({
               where: { id: body.data.schedulingId },
               data: { status: body.data.status }
             })

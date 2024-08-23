@@ -187,8 +187,8 @@ export default class CodechatService {
                 whatsappName: data.subject,
                 whatsappSessionId: input.instanceName
               })
-            } catch (error) {
-              console.log(error);
+            } catch (error: any) {
+              logger.error(error.message);
             }
           }, { max_tries: 10, timeout: 90 * 1000 });
         } else {
@@ -210,8 +210,8 @@ export default class CodechatService {
             whatsappSessionId: input.instanceName
           })
         }
-      } catch (error) {
-        console.log(error);
+      } catch (error: any) {
+        logger.error(error.message);
       }
     }, { max_tries: 3, interval: 1000 }));
   }

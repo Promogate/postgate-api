@@ -18,3 +18,13 @@ export type Chat = {
   updatedAt: string,
   instanceId: string
 }
+
+export type MediaMessage = {
+  sessionId: string;
+  number: string;
+  mediaMessage: {
+    mediaType: string;
+    caption: string;
+    media: string;
+  }
+}

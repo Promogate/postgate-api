@@ -5,6 +5,7 @@ import CodechatService from "../services/CodechatService";
 import logger from "../../utils/logger";
 import AppError from "../../helpers/AppError";
 import { HttpStatusCode } from "../../helpers/HttpStatusCode";
+import { MediaMessage } from "../../utils/@types";
 
 export default class CodechatController {
   constructor(httpServer: HttpServer, codechatService: CodechatService) {
@@ -102,5 +103,23 @@ export default class CodechatController {
         }
       }
     )
+
+    httpServer.on("post", "/codechat/send_media_message/:instanceId", [verifyToken],
+      async (request: Request & { user?: string }, response: Response) => {
+        const body = request.body as MediaMessage;
+        const { instanceId } = request.params as { instanceId: string };
+        if (!instanceId) throw new AppError({
+          message: "Missing instance id",
+          statusCode: HttpStatusCode.UNPROCESSABLE_ENTITY
+        });
+        try {
+          const result = await codechatService.sendMediaMessage({ ...body, sessionId: instanceId });
+          return response.json(result).status(HttpStatusCode.OK);
+        } catch (error: any) {
+          logger.error(error.message);
+          throw new AppError({ message: error.message, statusCode: HttpStatusCode.BAD_REQUEST });
+        }
+      }
+    );
   }
 }

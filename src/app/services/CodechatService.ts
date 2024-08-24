@@ -9,7 +9,7 @@ import checkIfIsGroup from "../../helpers/CheckIfIsAGroup";
 import prisma from "../../lib/prisma";
 import Bluebird from "bluebird";
 import retry from "bluebird-retry";
-import { Chat } from "../../utils/@types";
+import { Chat, MediaMessage } from "../../utils/@types";
 
 export default class CodechatService {
   client: AxiosInstance
@@ -173,7 +173,7 @@ export default class CodechatService {
       try {
         if (checkIfIsGroup(chat.remoteJid)) {
           retry(async () => {
-            try {              
+            try {
               const { data, status } = await this.client.get(`/group/findGroupInfos/${input.instanceName}?groupJid=${chat.remoteJid}`, {
                 headers: {
                   Authorization: `Bearer ${input.token}`
@@ -214,5 +214,20 @@ export default class CodechatService {
         logger.error(error.message);
       }
     }, { max_tries: 3, interval: 1000 }));
+  }
+
+  async sendMediaMessage(input: MediaMessage) {
+    try {
+      const whatappSession = await prisma.whatsappSession.findUnique({ where: { id: input.sessionId } });
+      if (!whatappSession) throw new Error("Whatsapp instance not found");
+      const { data, status } = await this.client.post(`/message/sendMedia/${input.sessionId}`, input, {
+        headers: {
+          Authorization: `Bearer ${whatappSession.token}`
+        }
+      })
+      return data;
+    } catch (error: any) {
+      logger.error(`[Codechat Service] | ${error.message}`);
+    }
   }
 }

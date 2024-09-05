@@ -28,3 +28,56 @@ export type MediaMessage = {
     media: string;
   }
 }
+
+export type EvolutionInstance = {
+  id: string;
+  name: string;
+  connectionStatus: string | null;
+  ownerJid: string | null;
+  profileName: string | null;
+  profilePicUrl: string | null;
+  integration: string;
+  number: string | null;
+  businessId: string | null;
+  token: string;
+  clientName: string;
+  disconnectionReasonCode: string | null;
+  disconnectionObject: string | null;
+  disconnectionAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  Chatwoot: string | null;
+  Proxy: string | null;
+  Rabbitmq: string | null;
+  Sqs: string | null;
+  Websocket: string | null;
+  Setting: {
+    id: string;
+    rejectCall: boolean;
+    msgCall: string;
+    groupsIgnore: boolean;
+    alwaysOnline: boolean;
+    readMessages: boolean;
+    readStatus: boolean;
+    syncFullHistory: boolean;
+    createdAt: string;
+    updatedAt: string;
+    instanceId: string;
+  },
+  _count: { Message: number, Contact: number, Chat: number }
+}
+
+export type EvoltutionFetchInstancesResponse = EvolutionInstance[];
+
+export type EvolutionInstanceConnectResponse = {
+  pairingCode: string;
+  code: string;
+  count: number;
+}
+
+export type EvolutionIsInstanceConnectedResponse = {
+  instance: {
+    instanceName: string;
+    state: string;
+  }
+}

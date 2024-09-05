@@ -21,7 +21,7 @@ import StripeController from "./app/controllers/StripeController";
 import SchedulerController from "./app/controllers/SchedulerController";
 import MessageController from "./app/controllers/MessageController";
 import CodechatService from "./app/services/CodechatService";
-import CodechatController from "./app/controllers/CodechatController";
+import EvolutionService from "./app/services/EvolutionService";
 
 const bootstrap = () => {
   dotenv.config();
@@ -36,14 +36,14 @@ const bootstrap = () => {
   const createSendingList = new CreateSendingListService(resourcesRepository);
   const authenticateUserService = new AuthenticateUserService(userRepository);
   const codechatService = new CodechatService(whatsappRepository, resourcesRepository);
+  const evolutionService = new EvolutionService(whatsappRepository, resourcesRepository);
 
   new UserController(app, createUserService, authenticateUserService);
-  new WhatsappController(app, whatsappSessionsService, saveManyChatsService, codechatService);
+  new WhatsappController(app, whatsappSessionsService, saveManyChatsService, codechatService, evolutionService);
   new ResourcesController(app, saveManyChatsService, getAllChatsService, createSendingList);
   new StripeController(app);
   new SchedulerController(app);
   new MessageController(app, whatsappSessionsService);
-  new CodechatController(app, codechatService);
 
   const server = http.createServer(app.getServer());
   

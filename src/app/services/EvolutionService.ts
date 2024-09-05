@@ -1,4 +1,4 @@
-import { AxiosInstance, AxiosResponse } from "axios";
+import { AxiosInstance } from "axios";
 import { CreateSession, UpdateSession } from "../../database/contracts/WhatsappRepository";
 import AppError from "../../helpers/AppError";
 import { HttpStatusCode } from "../../helpers/HttpStatusCode";
@@ -6,12 +6,12 @@ import logger from "../../utils/logger";
 import { SaveChat } from "../../database/contracts/ResourcesRepository";
 import checkIfIsGroup from "../../helpers/CheckIfIsAGroup";
 import prisma from "../../lib/prisma";
-import Bluebird from "bluebird";
+import Bluebird, { reject } from "bluebird";
 import retry from "bluebird-retry";
-import { Chat, MediaMessage } from "../../utils/@types";
+import { Chat, EvoltutionFetchInstancesResponse, EvolutionIsInstanceConnectedResponse, MediaMessage } from "../../utils/@types";
 import { whatsappClient } from "../../lib/whatsapp";
 
-export default class CodechatService {
+export default class EvolutionService {
   client: AxiosInstance
 
   constructor(
@@ -30,21 +30,20 @@ export default class CodechatService {
       });
       const { data } = await this.client.post("/instance/create", {
         instanceName: id,
-        description: input.description
+        integration: "WHATSAPP-BAILEYS",
+        syncFullHistory: false,
       });
       await this.whatsappRepository.update({
-        id: id,
-        token: data.Auth.token
+        id: data.instance.instanceId,
+        token: data.hash.apikey,
       })
       return {
         id: data.id,
         name: data.name,
-        description: data.description,
-        createdAt: data.createdAt,
-        updatedAt: data.updatedAt,
+        status: data.instance.status,
         Auth: {
-          id: data.Auth.id,
-          token: data.Auth.token
+          id: data.instance.instanceId,
+          token: data.hash.apikey
         }
       }
     } catch (error: any) {
@@ -55,11 +54,7 @@ export default class CodechatService {
 
   async getQRCode(input: { instanceName: string, token: string }) {
     try {
-      const { data } = await this.client.get(`/instance/connect/${input.instanceName}`, {
-        headers: {
-          Authorization: `Bearer ${input.token}`
-        }
-      });
+      const { data } = await this.client.get(`/instance/connect/${input.instanceName}`);
       return data;
     } catch (error: any) {
       logger.error(error.message);
@@ -72,12 +67,11 @@ export default class CodechatService {
     statusReason: number
   }> {
     try {
-      const { data } = await this.client.get(`/instance/connectionState/${input.instanceName}`, {
-        headers: {
-          Authorization: `Bearer ${input.token}`
-        }
-      });
-      return data;
+      const { data } = await this.client.get<EvolutionIsInstanceConnectedResponse>(`/instance/connectionState/${input.instanceName}`);
+      return {
+        state: data.instance.state,
+        statusReason: 200
+      };
     } catch (error: any) {
       logger.error(error.message);
       throw new AppError({ message: error.message, statusCode: HttpStatusCode.BAD_REQUEST });

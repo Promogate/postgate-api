@@ -23,9 +23,20 @@ export type MediaMessage = {
   sessionId: string;
   number: string;
   mediaMessage: {
-    mediaType: string;
+    mediatype: string;
     caption: string;
     media: string;
+  }
+}
+
+export type EvolutionMediaMessage = {
+  sessionId: string;
+  number: string;
+  mediaMessage: {
+    mediatype: string;
+    caption: string;
+    media: string;
+    mentionsEveryOne?: string;
   }
 }
 

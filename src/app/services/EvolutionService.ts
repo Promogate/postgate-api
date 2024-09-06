@@ -9,6 +9,7 @@ import prisma from "../../lib/prisma";
 import {
   EvolutionGroup,
   EvolutionIsInstanceConnectedResponse,
+  EvolutionMediaMessage,
   EvolutionTextMessage,
   MediaMessage
 } from "../../utils/@types";
@@ -179,14 +180,15 @@ export default class EvolutionService {
     }
   }
 
-  async sendMediaMessage(input: MediaMessage) {
+  async sendMediaMessage(input: EvolutionMediaMessage) {
     try {
       const whatappSession = await prisma.whatsappSession.findUnique({ where: { id: input.sessionId } });
       if (!whatappSession) throw new Error("Whatsapp instance not found");
-      const { data, status } = await this.client.post(`/message/sendMedia/${input.sessionId}`, input, {
-        headers: {
-          Authorization: `Bearer ${whatappSession.token}`
-        }
+      const { data, status } = await this.client.post(`/message/sendMedia/${input.sessionId}`, {
+        number: input.number,
+        mediatype: input.mediaMessage.mediatype,
+        caption: input.mediaMessage.caption,
+        media: input.mediaMessage.media,
       })
       return data;
     } catch (error: any) {

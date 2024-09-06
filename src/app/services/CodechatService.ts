@@ -8,7 +8,7 @@ import checkIfIsGroup from "../../helpers/CheckIfIsAGroup";
 import prisma from "../../lib/prisma";
 import Bluebird from "bluebird";
 import retry from "bluebird-retry";
-import { Chat, MediaMessage } from "../../utils/@types";
+import { Chat, EvolutionTextMessage, MediaMessage } from "../../utils/@types";
 import { whatsappClient } from "../../lib/whatsapp";
 
 export default class CodechatService {
@@ -228,6 +228,17 @@ export default class CodechatService {
       return data;
     } catch (error: any) {
       logger.error(`[Codechat Service] | ${error.message}`);
+    }
+  }
+
+  async sendTextMessage(input: EvolutionTextMessage) {
+    try {
+      const whatappSession = await prisma.whatsappSession.findUnique({ where: { id: input.sessionId } });
+      if (!whatappSession) throw new Error("Whatsapp instance not found");
+      const { data, status } = await this.client.post(`/message/sendText/${input.sessionId}`, input);
+      return data;
+    } catch (error: any) {
+      logger.error(`[Evolution Service] | ${error.message}`);
     }
   }
 }

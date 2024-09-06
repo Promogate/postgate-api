@@ -29,6 +29,25 @@ export type MediaMessage = {
   }
 }
 
+export type EvolutionTextMessage = {
+  sessionId: string;
+  number: string;
+  text?: string;
+  delay?: number;
+  linkPreview?: boolean;
+  mentionsEveryOne?: boolean;
+}
+
+export type RequestTextMessage = {
+  number: string;
+  message: {
+    text: string;
+    linkPreview?: boolean;
+    mentionsEveryOne?: boolean;
+    delay?: number;
+  }
+}
+
 export type EvolutionInstance = {
   id: string;
   name: string;
@@ -80,4 +99,19 @@ export type EvolutionIsInstanceConnectedResponse = {
     instanceName: string;
     state: string;
   }
+}
+
+export type EvolutionGroup = {
+  id: string;
+  subject: string;
+  subjectOwner: string;
+  subjectTime: number;
+  pictureUrl: string | null;
+  size: number;
+  creation: number;
+  owner: string;
+  desc: string;
+  descId: string;
+  restrict: boolean;
+  announce: boolean;
 }

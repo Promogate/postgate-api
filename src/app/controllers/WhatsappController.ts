@@ -9,6 +9,7 @@ import logger from "../../utils/logger";
 import CodechatService from "../services/CodechatService";
 import EvolutionService from "../services/EvolutionService";
 import AppError from "../../helpers/AppError";
+import { MediaMessage, RequestTextMessage } from "../../utils/@types";
 
 export default class WhatsappController {
   constructor(
@@ -79,7 +80,65 @@ export default class WhatsappController {
           throw new AppError({ message: error.message, statusCode: HttpStatusCode.BAD_REQUEST });
         }
       }
-    )
+    );
+    httpServer.on("get", "/whatsapp/sync_chats/:instanceId", [verifyToken],
+      async (request: Request & { user?: string }, response: Response) => {
+        const { instanceId } = request.params as { instanceId: string };
+        const body = request.body;
+        try {
+          await whatsappApiService.processItems({
+            instanceName: instanceId,
+            token: body.token,
+            chats: body.chats
+          });
+          return response.json({ message: "Processado com sucesso!" }).status(HttpStatusCode.OK);
+        } catch (error: any) {
+          logger.error(error);
+          throw new AppError({ message: error.message, statusCode: HttpStatusCode.BAD_REQUEST });
+        }
+      }
+    );
+    httpServer.on("post", "/whatsapp/send_media_message/:instanceId", [verifyToken],
+      async (request: Request & { user?: string }, response: Response) => {
+        const body = request.body as MediaMessage;
+        const { instanceId } = request.params as { instanceId: string };
+        if (!instanceId) throw new AppError({
+          message: "Missing instance id",
+          statusCode: HttpStatusCode.UNPROCESSABLE_ENTITY
+        });
+        try {
+          const result = await whatsappApiService.sendMediaMessage({ ...body, sessionId: instanceId });
+          return response.json(result).status(HttpStatusCode.OK);
+        } catch (error: any) {
+          logger.error(error.message);
+          throw new AppError({ message: error.message, statusCode: HttpStatusCode.BAD_REQUEST });
+        }
+      }
+    );
+    httpServer.on("post", "/whatsapp/send_text_message/:instanceId", [verifyToken],
+      async (request: Request & { user?: string }, response: Response) => {
+        const body = request.body as RequestTextMessage;
+        const { instanceId } = request.params as { instanceId: string };
+        if (!instanceId) throw new AppError({
+          message: "Missing instance id",
+          statusCode: HttpStatusCode.UNPROCESSABLE_ENTITY
+        });
+        try {
+          const result = await whatsappApiService.sendTextMessage({
+            sessionId: instanceId,
+            number: body.number,
+            delay: body.message.delay,
+            linkPreview: body.message.linkPreview,
+            mentionsEveryOne: body.message.mentionsEveryOne,
+            text: body.message.text
+          });
+          return response.json(result).status(HttpStatusCode.OK);
+        } catch (error: any) {
+          logger.error(error.message);
+          throw new AppError({ message: error.message, statusCode: HttpStatusCode.BAD_REQUEST });
+        }
+      }
+    );
     // httpServer.on("get", "/whatsapp/session/active-sessions", [verifyToken],
     //   async (request: Request, response: Response) => {
     //     const result = await whatsappSessionsService.countActiveSessions();

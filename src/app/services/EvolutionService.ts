@@ -6,9 +6,12 @@ import logger from "../../utils/logger";
 import { SaveChat } from "../../database/contracts/ResourcesRepository";
 import checkIfIsGroup from "../../helpers/CheckIfIsAGroup";
 import prisma from "../../lib/prisma";
-import Bluebird, { reject } from "bluebird";
-import retry from "bluebird-retry";
-import { Chat, EvoltutionFetchInstancesResponse, EvolutionIsInstanceConnectedResponse, MediaMessage } from "../../utils/@types";
+import {
+  EvolutionGroup,
+  EvolutionIsInstanceConnectedResponse,
+  EvolutionTextMessage,
+  MediaMessage
+} from "../../utils/@types";
 import { whatsappClient } from "../../lib/whatsapp";
 
 export default class EvolutionService {
@@ -156,58 +159,24 @@ export default class EvolutionService {
   }
 
   async processItems(input: { chats: string, token: string, instanceName: string }) {
-    const chats = JSON.parse(input.chats) as Chat[];
-    await Bluebird.each(chats, (chat) => retry(async () => {
-      const chatAlreadySync = await prisma.chats.findFirst({
-        where: {
-          whatsappId: chat.remoteJid
+    try {
+      const { data: groups } = await this.client.get<EvolutionGroup[]>(`/group/fetchAllGroups/${input.instanceName}`, {
+        params: {
+          getParticipants: false
         }
+      });
+      const promises = groups.map(async (group) => {
+        await this.resourcesRepository.saveChat({
+          isGroup: true,
+          whatsappId: group.id,
+          whatsappName: group.subject,
+          whatsappSessionId: input.instanceName
+        });
       })
-      if (chatAlreadySync) return;
-      try {
-        if (checkIfIsGroup(chat.remoteJid)) {
-          retry(async () => {
-            try {
-              const { data, status } = await this.client.get(`/group/findGroupInfos/${input.instanceName}?groupJid=${chat.remoteJid}`, {
-                headers: {
-                  Authorization: `Bearer ${input.token}`
-                },
-                timeout: 900
-              });
-              if (status !== 200) return;
-              await this.resourcesRepository.saveChat({
-                isGroup: true,
-                whatsappId: data.id,
-                whatsappName: data.subject,
-                whatsappSessionId: input.instanceName
-              })
-            } catch (error: any) {
-              logger.error(error.message);
-            }
-          }, { max_tries: 10, timeout: 90 * 1000 });
-        } else {
-          const { data, status } = await this.client.post(`/chat/findContacts/${input.instanceName}`, {
-            where: {
-              remoteJid: chat.remoteJid
-            }
-          }, {
-            headers: {
-              Authorization: `Bearer ${input.token}`
-            },
-            timeout: 900
-          });
-          if (status !== 200) return;
-          await this.resourcesRepository.saveChat({
-            isGroup: false,
-            whatsappId: data[0].remoteJid,
-            whatsappName: data[0].pushName,
-            whatsappSessionId: input.instanceName
-          })
-        }
-      } catch (error: any) {
-        logger.error(error.message);
-      }
-    }, { max_tries: 3, interval: 1000 }));
+      return await Promise.all(promises);
+    } catch (error: any) {
+      logger.error(`[Evolution Service] | ${error.stack}`);
+    }
   }
 
   async sendMediaMessage(input: MediaMessage) {
@@ -221,7 +190,18 @@ export default class EvolutionService {
       })
       return data;
     } catch (error: any) {
-      logger.error(`[Codechat Service] | ${error.message}`);
+      logger.error(`[Evolution Service] | ${error.message}`);
+    }
+  }
+
+  async sendTextMessage(input: EvolutionTextMessage) {
+    try {
+      const whatappSession = await prisma.whatsappSession.findUnique({ where: { id: input.sessionId } });
+      if (!whatappSession) throw new Error("Whatsapp instance not found");
+      const { data } = await this.client.post(`/message/sendText/${input.sessionId}`, input);
+      return data;
+    } catch (error: any) {
+      logger.error(`[Evolution Service] | ${error.message}`);
     }
   }
 }

@@ -23,6 +23,9 @@ model User {
   sendingLists       SendingList[]
   scheduledWorkflows ScheduledWorkflow[]
   userSubscription   UserSubscription?
+
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+  updatedAt DateTime @updatedAt @db.Timestamp(6)
 }
 
 model UserSubscription {
@@ -34,6 +37,9 @@ model UserSubscription {
   stripeCurrentPeriodEnd DateTime? @map(name: "stripe_current_period_end")
   user                   User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId                 String    @unique
+
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+  updatedAt DateTime @updatedAt @db.Timestamp(6)
 }
 
 model WhatsappSession {
@@ -50,6 +56,9 @@ model WhatsappSession {
   userId       String?
   chats        Chats[]
   sendingLists SendingList[]
+
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+  updatedAt DateTime @updatedAt @db.Timestamp(6)
 }
 
 model Chats {
@@ -60,6 +69,9 @@ model Chats {
 
   whatsappSession   WhatsappSession? @relation(fields: [whatsappSessionId], references: [id], onDelete: Cascade)
   whatsappSessionId String?
+  
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+  updatedAt DateTime @updatedAt @db.Timestamp(6)
 }
 
 model Workflow {
@@ -72,6 +84,9 @@ model Workflow {
 
   user   User?   @relation(fields: [userId], references: [id])
   userId String?
+
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+  updatedAt DateTime @updatedAt @db.Timestamp(6)
 }
 
 model SendingList {
@@ -84,13 +99,16 @@ model SendingList {
   userId            String?
   whatsappSession   WhatsappSession? @relation(fields: [whatsappSessionId], references: [id], onDelete: Cascade)
   whatsappSessionId String?
+
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+  updatedAt DateTime @updatedAt @db.Timestamp(6)
 }
 
 model ScheduledWorkflow {
-  id                String @id @default(cuid())
-  startTime         String
+  id                String  @id @default(cuid())
+  startTime         String?
   whatsappSessionId String
-  status            String @default("SCHEDULED")
+  status            String  @default("SCHEDULED")
 
   user          User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId        String?
@@ -98,4 +116,7 @@ model ScheduledWorkflow {
   sendingListId String?
   workflow      Workflow?    @relation(fields: [workflowId], references: [id], onDelete: Cascade)
   workflowId    String?
+
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+  updatedAt DateTime @updatedAt @db.Timestamp(6)
 }

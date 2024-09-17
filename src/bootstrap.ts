@@ -22,6 +22,7 @@ import SchedulerController from "./app/controllers/SchedulerController";
 import MessageController from "./app/controllers/MessageController";
 import CodechatService from "./app/services/CodechatService";
 import EvolutionService from "./app/services/EvolutionService";
+import DashboardController from "./app/controllers/DashboardController";
 
 const bootstrap = () => {
   dotenv.config();
@@ -44,6 +45,7 @@ const bootstrap = () => {
   new StripeController(app);
   new SchedulerController(app);
   new MessageController(app, whatsappSessionsService);
+  new DashboardController(app);
 
   const server = http.createServer(app.getServer());
   

@@ -12,9 +12,38 @@ export default class DashboardController {
       "/dashboard",
       [verifyToken],
       async (request: Request & { user?: string }, response: Response) => {
-        const pendingAppointments = await prisma.scheduledWorkflow.count({ where: { status: "SCHEDULED" } });
-        const completedAppointments = await prisma.scheduledWorkflow.count({ where: { status: "COMPLETED" } });
-        const groups = await prisma.chats.count();
+        const user = request.user as string;
+        const pendingAppointments = await prisma.scheduledWorkflow.count({
+          where: {
+            AND: [
+              {
+                status: "SCHEDULED"
+              },
+              {
+                userId: user
+              }
+            ]
+          }
+        });
+        const completedAppointments = await prisma.scheduledWorkflow.count({
+          where: {
+            AND: [
+              {
+                status: "COMPLETED"
+              },
+              {
+                userId: user
+              }
+            ]
+          }
+        });
+        const groups = await prisma.chats.count({
+          where: {
+            whatsappSession: {
+              userId: user
+            }
+          }
+        });
         return response.json({
           data: {
             pendingAppointments,

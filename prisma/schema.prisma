@@ -42,6 +42,7 @@ model UserSubscription {
   updatedAt DateTime @updatedAt @db.Timestamp(6)
 }
 
+
 model WhatsappSession {
   id           String        @id @default(cuid())
   instanceId   String?
@@ -69,7 +70,7 @@ model Chats {
 
   whatsappSession   WhatsappSession? @relation(fields: [whatsappSessionId], references: [id], onDelete: Cascade)
   whatsappSessionId String?
-  
+
   createdAt DateTime @default(now()) @db.Timestamp(6)
   updatedAt DateTime @updatedAt @db.Timestamp(6)
 }

@@ -14,6 +14,11 @@ class UserRepository implements CreateUserRepository, FindUserByEmailRepository 
           email: input.email,
           password: input.password,
           username: input.username,
+          userSubscription: {
+            create: {
+              subscriptionLevel: "FREE"
+            }
+          }
         }
       });
       return user;
@@ -28,6 +33,9 @@ class UserRepository implements CreateUserRepository, FindUserByEmailRepository 
       const user = await this.database.user.findUnique({
         where: {
           email: input.email
+        },
+        include: {
+          userSubscription: true,
         }
       });
       return user;

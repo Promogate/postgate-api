@@ -1,4 +1,4 @@
-import { User } from "@prisma/client";
+import { User, UserSubscription } from "@prisma/client";
 
 export interface CreateUserRepository {
   create(input: CreateUserRepository.Input): Promise<CreateUserRepository.Output>;
@@ -21,5 +21,5 @@ export namespace FindUserByEmailRepository {
   export type Input = {
     email: string
   }
-  export type Output = User | null;
+  export type Output = any | null;
 }

@@ -5,7 +5,7 @@ import AppError from "../../helpers/AppError";
 import { HttpStatusCode } from "../../helpers/HttpStatusCode";
 
 class UserRepository implements CreateUserRepository, FindUserByEmailRepository {
-  constructor(readonly database: PrismaClient) {}
+  constructor(readonly database: PrismaClient) { }
 
   async create(input: CreateUserRepository.Input): Promise<CreateUserRepository.Output> {
     try {

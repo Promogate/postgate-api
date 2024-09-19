@@ -24,7 +24,8 @@ export default class AuthenticateUserService implements AuthenticateUser {
         user: {
           id: user.id,
           email: user.email,
-          username: user.username
+          username: user.username,
+          userSubscription: user.userSubscription
         }
       }
     } catch (error: any) {

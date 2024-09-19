@@ -13,6 +13,17 @@ export namespace AuthenticateUser {
       id: string;
       email: string;
       username: string | undefined | null;
+      userSubscription: {
+        id: string;
+        stripeCurrentPeriodEnd: string | null;
+        stripeCustomerId: string | null;
+        stripePriceId: string | null;
+        stripeSubscriptionId: string | null;
+        subscriptionLevel: string;
+        createdAt: string;
+        updatedAt: string;
+        userId: string;
+      };
     }
   }
 }

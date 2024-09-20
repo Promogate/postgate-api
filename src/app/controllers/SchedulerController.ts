@@ -16,7 +16,7 @@ export default class SchedulerController {
         const body = request.body as { scheduleTime: string, chosenList: string; chosenWorkflow: string };
         const [listId, whatsappSessionId] = body.chosenList.split("_");
         try {
-          const scheduled = await prisma.scheduledWorkflow.create({
+          const savedScheduledWorkflow = await prisma.scheduledWorkflow.create({
             data: {
               startTime: body.scheduleTime,
               sendingListId: listId,
@@ -25,7 +25,7 @@ export default class SchedulerController {
               whatsappSessionId
             }
           });
-          const sendingList = await prisma.sendingList.findUnique({
+          const foundSendingList = await prisma.sendingList.findUnique({
             where: {
               id: listId
             },
@@ -38,21 +38,53 @@ export default class SchedulerController {
             }
           });
           const workflow = await prisma.workflow.findUnique({ where: { id: body.chosenWorkflow } });
-          if (!sendingList || !workflow) {
+          if (!foundSendingList || !workflow) {
             return response.status(HttpStatusCode.BAD_REQUEST).send("Some missing properties");
           }
-          if (sendingList.list === null || workflow.nodes === null) {
+          if (foundSendingList.list === null || workflow.nodes === null) {
             return response.status(HttpStatusCode.BAD_REQUEST).send("Some missing properties");
           }
-          const parsedSendingList = JSON.parse(sendingList.list);
+          const parsedSendingList = JSON.parse(foundSendingList.list);
           const parsedMessages = JSON.parse(workflow.nodes);
           await n8n.post(buildN8nUrl("/schedule"), {
             sendingList: parsedSendingList,
             messages: parsedMessages,
-            startTime: scheduled.startTime,
+            startTime: savedScheduledWorkflow.startTime,
             whatsappSessionId,
-            token: sendingList.whatsappSession?.token,
-            schedulingId: scheduled.id,
+            token: foundSendingList.whatsappSession?.token,
+            schedulingId: savedScheduledWorkflow.id,
+            authToken
+          });
+          return response.status(HttpStatusCode.CREATED).send("Agendamento");
+        } catch (error: any) {
+          logger.error(error.message);
+          return response.status(HttpStatusCode.BAD_REQUEST).send(error.message);
+        }
+      });
+    httpServer.on("post", "/scheduler/instant_message/:whatsappSessionId", [verifyToken],
+      async (request: Request & { user?: string }, response: Response) => {
+        const authToken = request.headers.authorization;
+        const { whatsappSessionId } = request.params as { whatsappSessionId: string; };
+        if (!whatsappSessionId) return response.status(HttpStatusCode.UNPROCESSABLE_ENTITY).send("Missing Instance ID");
+        const body = request.body as {
+          groups: {
+            id: string;
+            whatsappId: string;
+            whatsappName: string;
+            isGroup: boolean;
+            whatsappSessionId: string;
+          }[];
+          messages: {
+            label: string;
+            message: string;
+            image?: string;
+          };
+        };
+        try {
+          await n8n.post(buildN8nUrl("/instant_message"), {
+            sendingList: body.groups,
+            messages: [body.messages],
+            whatsappSessionId: whatsappSessionId,
             authToken
           });
           return response.status(HttpStatusCode.CREATED).send("Agendamento");

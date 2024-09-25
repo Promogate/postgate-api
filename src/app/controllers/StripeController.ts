@@ -15,24 +15,12 @@ import { Plans } from "../../utils/@types";
 const settingsUrl = absoluteUrl("/");
 
 const planTypes: Plans = {
-  beginner: {
-    name: "Zapgate Iniciante",
-    description: "Pacote nível iniciante de mensagens e ferramentas para whastapp",
-    level: "BEGINNER",
-    amount: 4900
-  },
   professional: {
-    name: "Zapgate Profissional",
+    name: "Postgat PRO",
     description: "Pacote nível profissional de mensagens e ferramentas para whastapp",
     level: "PROFESSIONAL",
-    amount: 9900
+    amount: 5790
   },
-  business: {
-    name: "Zapgate Empresa",
-    description: "Pacote nível empresa de mensagens e ferramentas para whastapp",
-    level: "BUSINESS",
-    amount: 14900
-  }
 }
 
 export default class StripeController {

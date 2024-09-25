@@ -22,6 +22,7 @@ model User {
   workflows          Workflow[]
   sendingLists       SendingList[]
   scheduledWorkflows ScheduledWorkflow[]
+  redirectors        Redirector[]
   userSubscription   UserSubscription?
 
   createdAt DateTime @default(now()) @db.Timestamp(6)
@@ -65,13 +66,18 @@ model WhatsappSession {
 }
 
 model Chats {
-  id           String  @id @default(cuid())
-  whatsappId   String  @unique
-  whatsappName String
-  isGroup      Boolean @default(false)
+  id              String  @id @default(cuid())
+  whatsappId      String  @unique
+  whatsappName    String
+  isGroup         Boolean @default(false)
+  groupInviteLink String?
+  groupInviteCode String?
+  participants    Int?
 
   whatsappSession   WhatsappSession? @relation(fields: [whatsappSessionId], references: [id], onDelete: Cascade)
   whatsappSessionId String?
+  redirector        Redirector?      @relation(fields: [redirectorId], references: [id])
+  redirectorId      String?
 
   createdAt DateTime @default(now()) @db.Timestamp(6)
   updatedAt DateTime @updatedAt @db.Timestamp(6)
@@ -122,4 +128,19 @@ model ScheduledWorkflow {
 
   createdAt DateTime @default(now()) @db.Timestamp(6)
   updatedAt DateTime @updatedAt @db.Timestamp(6)
+}
+
+model Redirector {
+  id             String  @id @default(cuid())
+  identifier     String
+  groups         Chats[]
+  clicked        Int     @default(0)
+  title          String
+  instanceId     String?
+  linkToRedirect String?
+
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+  updatedAt DateTime @updatedAt @db.Timestamp(6)
+  user      User?    @relation(fields: [userId], references: [id])
+  userId    String?
 }

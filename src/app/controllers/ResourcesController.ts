@@ -115,7 +115,33 @@ export default class ResourcesController {
         const userId = request.user;
         try {
           const result = await prisma.workflow.findMany({
-            where: { userId: userId }
+            where: {
+              AND: [
+                {
+                  userId: userId
+                },
+                {
+                  description: {
+                    equals: "workflow"
+                  }
+                }
+              ]
+            }
+          });
+          return response.status(HttpStatusCode.OK).json(result);
+        } catch (error: any) {
+          logger.error(error.message);
+          return response.status(HttpStatusCode.BAD_REQUEST).send();
+        }
+      })
+    httpServer.on("get", "/resources/workflows/:workflowId", [verifyToken],
+      async (request: Request, response: Response) => {
+        const { workflowId } = request.params as { workflowId: string };
+        try {
+          const result = await prisma.workflow.findUnique({
+            where: {
+              id: workflowId
+            }
           })
           return response.status(HttpStatusCode.OK).json(result);
         } catch (error: any) {
@@ -190,5 +216,102 @@ export default class ResourcesController {
           return response.status(HttpStatusCode.BAD_REQUEST).send();
         }
       });
+    httpServer.on("post", "/resources/messages_lists", [verifyToken],
+      async (request: Request & { user?: string }, response: Response) => {
+        const userId = request.user;
+        const body = request.body;
+        try {
+          await prisma.workflow.create({
+            data: {
+              title: body.title,
+              description: body.description,
+              userId: userId
+            }
+          })
+          return response.status(HttpStatusCode.CREATED).send();
+        } catch (error: any) {
+          logger.error(error.message);
+          return response.status(HttpStatusCode.BAD_REQUEST).send();
+        }
+      });
+    httpServer.on("get", "/resources/messages_lists", [verifyToken],
+      async (request: Request & { user?: string }, response: Response) => {
+        const userId = request.user;
+        try {
+          const result = await prisma.workflow.findMany({
+            where: {
+              AND: [
+                {
+                  userId: userId
+                },
+                {
+                  description: {
+                    equals: "messages_list"
+                  }
+                }
+              ]
+            }
+          })
+          return response.status(HttpStatusCode.OK).json(result);
+        } catch (error: any) {
+          logger.error(error.message);
+          return response.status(HttpStatusCode.BAD_REQUEST).send();
+        }
+      })
+    httpServer.on("get", "/resources/messages_lists/:workflowId", [verifyToken],
+      async (request: Request, response: Response) => {
+        const { workflowId } = request.params as { workflowId: string };
+        try {
+          const result = await prisma.workflow.findUnique({
+            where: {
+              id: workflowId
+            }
+          })
+          return response.status(HttpStatusCode.OK).json(result);
+        } catch (error: any) {
+          logger.error(error.message);
+          return response.status(HttpStatusCode.BAD_REQUEST).send();
+        }
+      })
+    httpServer.on("get", "/resources/redirectors", [verifyToken],
+      async (request: Request & { user?: string }, response: Response) => {
+        const user = request.user;
+        try {
+          const result = await prisma.redirector.findMany({ where: { userId: user } });
+          return response.json(result).status(HttpStatusCode.OK);
+        } catch (error: any) {
+          logger.error(error.message);
+          return response.status(HttpStatusCode.BAD_REQUEST).send();
+        }
+      })
+    httpServer.on("post", "/resources/redirectors", [verifyToken],
+      async (request: Request & { user?: string; }, response: Response) => {
+        const body = request.body as { title: string; identifier: string; };
+        const user = request.user as string;
+        try {
+          await prisma.redirector.create({
+            data: {
+              identifier: body.identifier,
+              title: body.title,
+              userId: user
+            }
+          })
+          return response.status(HttpStatusCode.OK).send();
+        } catch (error: any) {
+          logger.error(error.message);
+          return response.status(HttpStatusCode.BAD_REQUEST).send();
+        }
+      })
+    httpServer.on("get", "/resources/redirectors/:redirectorId", [verifyToken],
+      async (request: Request & { user?: string; }, response: Response) => {
+        const params = request.params as { redirectorId: string };
+        try {
+          const redirector = await prisma.redirector.findUnique({ where: { id: params.redirectorId } })
+          return response.status(HttpStatusCode.OK).json(redirector);
+        } catch (error: any) {
+          logger.error(error.message);
+          return response.status(HttpStatusCode.BAD_REQUEST).send();
+        }
+      })
   }
 }

@@ -7,6 +7,7 @@ import logger from "../../utils/logger";
 import { GetAllChats } from "../interfaces/GetAllChats";
 import { CreateSendingList } from "../interfaces/CreateSendingList";
 import prisma from "../../lib/prisma";
+import { Group } from "../../utils/@types";
 
 export default class ResourcesController {
   constructor(
@@ -308,6 +309,24 @@ export default class ResourcesController {
         try {
           const redirector = await prisma.redirector.findUnique({ where: { id: params.redirectorId } })
           return response.status(HttpStatusCode.OK).json(redirector);
+        } catch (error: any) {
+          logger.error(error.message);
+          return response.status(HttpStatusCode.BAD_REQUEST).send();
+        }
+      })
+    httpServer.on("put", "/resources/redirectors/groups/:redirectorId", [verifyToken],
+      async (request: Request & { user?: string; }, response: Response) => {
+        const params = request.params as { redirectorId: string };
+        const body = request.body as { instanceId: string; groups: string };
+        try {
+          await prisma.redirector.update({
+            where: { id: params.redirectorId },
+            data: {
+              instanceId: body.instanceId,
+              groups: body.groups
+            }
+          })
+          return response.status(HttpStatusCode.OK).send();
         } catch (error: any) {
           logger.error(error.message);
           return response.status(HttpStatusCode.BAD_REQUEST).send();

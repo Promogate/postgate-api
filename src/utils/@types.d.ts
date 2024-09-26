@@ -126,3 +126,17 @@ export type EvolutionGroup = {
   restrict: boolean;
   announce: boolean;
 }
+
+export type Group = {
+  createdAt: string;
+  groupInviteCode: null | string;
+  groupInviteLink: null | string;
+  id: string;
+  isGroup: boolean;
+  participants: null | string;
+  redirectorId: null | string;
+  updatedAt: string;
+  whatsappId: string;
+  whatsappName: string;
+  whatsappSessionId: string;
+}

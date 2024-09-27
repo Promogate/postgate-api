@@ -8,13 +8,15 @@ import { GetAllChats } from "../interfaces/GetAllChats";
 import { CreateSendingList } from "../interfaces/CreateSendingList";
 import prisma from "../../lib/prisma";
 import { Group } from "../../utils/@types";
+import EvolutionService from "../services/EvolutionService";
 
 export default class ResourcesController {
   constructor(
     httpServer: HttpServer,
     readonly saveManyChatsService: SaveManyWhatsappChats,
     readonly getAllChatsService: GetAllChats,
-    readonly createSendingList: CreateSendingList
+    readonly createSendingList: CreateSendingList,
+    readonly evolutionService: EvolutionService
   ) {
     httpServer.on("post", "/resources/chats/save/:sessionId", [verifyToken],
       async (request: Request, response: Response) => {
@@ -318,6 +320,7 @@ export default class ResourcesController {
       async (request: Request & { user?: string; }, response: Response) => {
         const params = request.params as { redirectorId: string };
         const body = request.body as { instanceId: string; groups: string };
+        const parsedGroups = JSON.parse(body.groups);
         try {
           await prisma.redirector.update({
             where: { id: params.redirectorId },
@@ -325,7 +328,16 @@ export default class ResourcesController {
               instanceId: body.instanceId,
               groups: body.groups
             }
-          })
+          });
+          const promises = parsedGroups.map(async (group: Group) => {
+            await prisma.chats.update({
+              where: { id: group.id },
+              data: {
+                groupInviteLink: group.groupInviteLink
+              }
+            })
+          });
+          await Promise.all(promises);
           return response.status(HttpStatusCode.OK).send();
         } catch (error: any) {
           logger.error(error.message);

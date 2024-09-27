@@ -206,4 +206,20 @@ export default class EvolutionService {
       logger.error(`[Evolution Service] | ${error.message}`);
     }
   }
+
+  async getGroupInviteLinkAndInviteCode(input: { sessionId: string; groupId: string;}) {
+    try {
+      const whatappSession = await prisma.whatsappSession.findUnique({ where: { id: input.sessionId } });
+      if (!whatappSession) throw new Error("Whatsapp instance not found");
+      const { data } = await this.client.get(`/group/inviteCode/${input.sessionId}`, {
+        params: {
+          groupJid: input.groupId
+        }
+      });
+      console.log(data);
+      return data;
+    } catch (error: any) {
+      logger.error(`[Evolution Service] | ${error.message}`);
+    }
+  }
 }

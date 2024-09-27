@@ -41,7 +41,7 @@ const bootstrap = () => {
 
   new UserController(app, createUserService, authenticateUserService);
   new WhatsappController(app, whatsappSessionsService, saveManyChatsService, codechatService, evolutionService);
-  new ResourcesController(app, saveManyChatsService, getAllChatsService, createSendingList);
+  new ResourcesController(app, saveManyChatsService, getAllChatsService, createSendingList, evolutionService);
   new StripeController(app);
   new SchedulerController(app);
   new MessageController(app, whatsappSessionsService);

@@ -30,6 +30,7 @@ export type MediaMessage = {
 }
 
 export type EvolutionMediaMessage = {
+  userId: string;
   sessionId: string;
   number: string;
   mediaMessage: {
@@ -41,6 +42,7 @@ export type EvolutionMediaMessage = {
 }
 
 export type EvolutionTextMessage = {
+  userId: string;
   sessionId: string;
   number: string;
   text?: string;

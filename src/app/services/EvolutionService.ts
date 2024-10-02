@@ -190,6 +190,19 @@ export default class EvolutionService {
         caption: input.mediaMessage.caption,
         media: input.mediaMessage.media,
       })
+      if (status === 200) {
+        prisma.$transaction(async (ctx) => {
+          const subscription = await ctx.userSubscription.findUnique({ where: { userId: input.userId } });
+          if (!subscription) {
+            logger.error(`Evolution Service | sendMediaMessage: User subscription not found!`);
+            new AppError({ message: "User subscription not found!", statusCode: HttpStatusCode.UNPROCESSABLE_ENTITY });
+          }
+          await ctx.userSubscription.update({
+            where: { id: subscription?.id as string },
+            data: { usage: (subscription?.usage as number) + 1 }
+          })
+        })
+      }
       return data;
     } catch (error: any) {
       logger.error(`[Evolution Service] | ${error.message}`);
@@ -200,14 +213,27 @@ export default class EvolutionService {
     try {
       const whatappSession = await prisma.whatsappSession.findUnique({ where: { id: input.sessionId } });
       if (!whatappSession) throw new Error("Whatsapp instance not found");
-      const { data } = await this.client.post(`/message/sendText/${input.sessionId}`, input);
+      const { data, status } = await this.client.post(`/message/sendText/${input.sessionId}`, input);
+      if (status === 200) {
+        prisma.$transaction(async (ctx) => {
+          const subscription = await ctx.userSubscription.findUnique({ where: { userId: input.userId } });
+          if (!subscription) {
+            logger.error(`Evolution Service | sendMediaMessage: User subscription not found!`);
+            new AppError({ message: "User subscription not found!", statusCode: HttpStatusCode.UNPROCESSABLE_ENTITY });
+          }
+          await ctx.userSubscription.update({
+            where: { id: subscription?.id as string },
+            data: { usage: (subscription?.usage as number) + 1 }
+          })
+        })
+      }
       return data;
     } catch (error: any) {
       logger.error(`[Evolution Service] | ${error.message}`);
     }
   }
 
-  async getGroupInviteLinkAndInviteCode(input: { sessionId: string; groupId: string;}) {
+  async getGroupInviteLinkAndInviteCode(input: { sessionId: string; groupId: string; }) {
     try {
       const whatappSession = await prisma.whatsappSession.findUnique({ where: { id: input.sessionId } });
       if (!whatappSession) throw new Error("Whatsapp instance not found");

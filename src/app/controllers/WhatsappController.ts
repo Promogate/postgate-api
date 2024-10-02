@@ -101,13 +101,14 @@ export default class WhatsappController {
     httpServer.on("post", "/whatsapp/send_media_message/:instanceId", [verifyToken],
       async (request: Request & { user?: string }, response: Response) => {
         const body = request.body as MediaMessage;
+        const user = request.user as string;
         const { instanceId } = request.params as { instanceId: string };
         if (!instanceId) throw new AppError({
           message: "Missing instance id",
           statusCode: HttpStatusCode.UNPROCESSABLE_ENTITY
         });
         try {
-          const result = await whatsappApiService.sendMediaMessage({ ...body, sessionId: instanceId });
+          const result = await whatsappApiService.sendMediaMessage({ ...body, sessionId: instanceId, userId: user });
           return response.json(result).status(HttpStatusCode.OK);
         } catch (error: any) {
           logger.error(error.message);
@@ -118,6 +119,7 @@ export default class WhatsappController {
     httpServer.on("post", "/whatsapp/send_text_message/:instanceId", [verifyToken],
       async (request: Request & { user?: string }, response: Response) => {
         const body = request.body as RequestTextMessage;
+        const user = request.user as string;
         const { instanceId } = request.params as { instanceId: string };
         if (!instanceId) throw new AppError({
           message: "Missing instance id",
@@ -125,6 +127,7 @@ export default class WhatsappController {
         });
         try {
           const result = await whatsappApiService.sendTextMessage({
+            userId: user,
             sessionId: instanceId,
             number: body.number,
             delay: body.message.delay,

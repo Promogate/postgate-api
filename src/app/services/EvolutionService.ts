@@ -191,7 +191,7 @@ export default class EvolutionService {
         media: input.mediaMessage.media,
       })
       if (status === 200) {
-        prisma.$transaction(async (ctx) => {
+        const updateUsage = () => prisma.$transaction(async (ctx) => {
           const subscription = await ctx.userSubscription.findUnique({ where: { userId: input.userId } });
           if (!subscription) {
             logger.error(`Evolution Service | sendMediaMessage: User subscription not found!`);
@@ -202,6 +202,7 @@ export default class EvolutionService {
             data: { usage: (subscription?.usage as number) + 1 }
           })
         })
+        await updateUsage()
       }
       return data;
     } catch (error: any) {
@@ -215,7 +216,7 @@ export default class EvolutionService {
       if (!whatappSession) throw new Error("Whatsapp instance not found");
       const { data, status } = await this.client.post(`/message/sendText/${input.sessionId}`, input);
       if (status === 200) {
-        prisma.$transaction(async (ctx) => {
+        const updateUsage = () => prisma.$transaction(async (ctx) => {
           const subscription = await ctx.userSubscription.findUnique({ where: { userId: input.userId } });
           if (!subscription) {
             logger.error(`Evolution Service | sendMediaMessage: User subscription not found!`);
@@ -226,6 +227,7 @@ export default class EvolutionService {
             data: { usage: (subscription?.usage as number) + 1 }
           })
         })
+        await updateUsage();
       }
       return data;
     } catch (error: any) {

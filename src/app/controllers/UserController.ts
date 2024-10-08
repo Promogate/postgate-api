@@ -21,7 +21,21 @@ class UserController {
       return response.status(200).json({ token, user });
     });
     httpServer.on("get", "/user/who_is", [verifyToken], async (request: Request & { user?: string }, response: Response) => {
-      const user = await prisma.userSubscription.findUnique({ where: { userId: request.user } })
+      const user = await prisma.userSubscription.findUnique({
+        where: {
+          userId: request.user
+        }, include: {
+          user: {
+            select: {
+              id: true,
+              username: true,
+              email: true,
+              createdAt: true,
+              updatedAt: true
+            }
+          }
+        }
+      })
       return response.status(200).json(user);
     });
   }

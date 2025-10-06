@@ -1,14 +1,13 @@
-import express, { NextFunction, Request, Response, Express } from "express";
-const asyncErrors = require("express-async-errors");
 import cors from "cors";
+import express, { Express, NextFunction, Request, Response } from "express";
 import http from "http";
+const asyncErrors = require("express-async-errors");
 
-import { HttpServer } from "../interfaces/HttpServer";
+import path from "path";
 import AppError from "../../helpers/AppError";
 import { HttpStatusCode } from "../../helpers/HttpStatusCode";
 import logger from "../../utils/logger";
-import path from "path";
-import bodyParser from "body-parser";
+import { HttpServer } from "../interfaces/HttpServer";
 
 export class ExpressAdapter implements HttpServer {
   app: Express;

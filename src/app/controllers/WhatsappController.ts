@@ -1,15 +1,15 @@
 import { Request, Response } from "express";
-import { HttpServer } from "../interfaces/HttpServer";
-import WhatsappSessionsService from "../services/WhatsappSessionsService";
-import { verifyToken } from "../middleware/verifyToken";
+import AppError from "../../helpers/AppError";
 import { HttpStatusCode } from "../../helpers/HttpStatusCode";
 import prisma from "../../lib/prisma";
-import { SaveManyWhatsappChats } from "../interfaces/SaveManyWhatsappChats";
+import { MediaMessage, RequestTextMessage } from "../../utils/@types";
 import logger from "../../utils/logger";
+import { HttpServer } from "../interfaces/HttpServer";
+import { SaveManyWhatsappChats } from "../interfaces/SaveManyWhatsappChats";
+import { verifyToken } from "../middleware/verifyToken";
 import CodechatService from "../services/CodechatService";
 import EvolutionService from "../services/EvolutionService";
-import AppError from "../../helpers/AppError";
-import { MediaMessage, RequestTextMessage } from "../../utils/@types";
+import WhatsappSessionsService from "../services/WhatsappSessionsService";
 
 export default class WhatsappController {
   constructor(
@@ -52,7 +52,7 @@ export default class WhatsappController {
           if (!clients) {
             return response.json({ message: "Não há clients criados pelo usuário" }).status(200);
           }
-          clients.forEach(async (client) => {
+          clients.forEach(async (client: any) => {
             if (client.status === "" || !client.status) {
               const connectionsState = await whatsappApiService.isInstanceConnected({
                 instanceName: client.id,
@@ -175,6 +175,7 @@ export default class WhatsappController {
           return response.status(HttpStatusCode.UNPROCESSABLE_ENTITY).send({ message: "Sessin ID is missing!" });
         }
         try {
+          await this.evolutionService.deleteWhatsappSession(sessionId);
           await prisma.whatsappSession.delete({ where: { id: sessionId } });
           return response.status(HttpStatusCode.OK).send();
         } catch (error: any) {

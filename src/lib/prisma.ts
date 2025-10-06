@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client"
+import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient({
   log: [
@@ -21,7 +21,7 @@ const prisma = new PrismaClient({
   ],
 })
 
-prisma.$on('query', (e) => {
+prisma.$on('query', (e: any) => {
   if (process.env.PRISMA_QUERY_LOG === "true") {
     console.log('Query: ' + e.query)
     console.log('Params: ' + e.params)

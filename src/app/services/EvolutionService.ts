@@ -1,22 +1,21 @@
 import { AxiosInstance } from "axios";
+import { SaveChat } from "../../database/contracts/ResourcesRepository";
 import { CreateSession, UpdateSession } from "../../database/contracts/WhatsappRepository";
 import AppError from "../../helpers/AppError";
-import { HttpStatusCode } from "../../helpers/HttpStatusCode";
-import logger from "../../utils/logger";
-import { SaveChat } from "../../database/contracts/ResourcesRepository";
 import checkIfIsGroup from "../../helpers/CheckIfIsAGroup";
+import { HttpStatusCode } from "../../helpers/HttpStatusCode";
 import prisma from "../../lib/prisma";
+import { whatsappClient } from "../../lib/whatsapp";
 import {
   EvolutionGroup,
   EvolutionIsInstanceConnectedResponse,
   EvolutionMediaMessage,
-  EvolutionTextMessage,
-  MediaMessage
+  EvolutionTextMessage
 } from "../../utils/@types";
-import { whatsappClient } from "../../lib/whatsapp";
+import logger from "../../utils/logger";
 
 export default class EvolutionService {
-  client: AxiosInstance
+  client: AxiosInstance;
 
   constructor(
     readonly whatsappRepository: CreateSession & UpdateSession,
@@ -40,7 +39,7 @@ export default class EvolutionService {
       await this.whatsappRepository.update({
         id: data.instance.instanceId,
         token: data.hash.apikey,
-      })
+      });
       return {
         id: data.id,
         name: data.name,
@@ -49,14 +48,14 @@ export default class EvolutionService {
           id: data.instance.instanceId,
           token: data.hash.apikey
         }
-      }
+      };
     } catch (error: any) {
       logger.error(error.message);
       throw new AppError({ message: error.message, statusCode: HttpStatusCode.BAD_REQUEST });
     }
   }
 
-  async getQRCode(input: { instanceName: string, token: string }) {
+  async getQRCode(input: { instanceName: string, token: string; }) {
     try {
       const { data } = await this.client.get(`/instance/connect/${input.instanceName}`);
       return data;
@@ -66,9 +65,9 @@ export default class EvolutionService {
     }
   }
 
-  async isInstanceConnected(input: { instanceName: string, token: string }): Promise<{
+  async isInstanceConnected(input: { instanceName: string, token: string; }): Promise<{
     state: string,
-    statusReason: number
+    statusReason: number;
   }> {
     try {
       const { data } = await this.client.get<EvolutionIsInstanceConnectedResponse>(`/instance/connectionState/${input.instanceName}`);
@@ -84,7 +83,7 @@ export default class EvolutionService {
 
   async updateConnectionState(input: UpdateSession.Input): Promise<void> {
     try {
-      const result = await this.whatsappRepository.update({ ...input, id: input.id, })
+      const result = await this.whatsappRepository.update({ ...input, id: input.id, });
       return result;
     } catch (error: any) {
       logger.error(error.message);
@@ -92,7 +91,16 @@ export default class EvolutionService {
     }
   }
 
-  async getChats(input: { token: string, instanceName: string }): Promise<any> {
+  async deleteWhatsappSession(instanceId: string): Promise<void> {
+    try {
+      await this.client.delete(`/instance/delete/${instanceId}`);
+    } catch (error: any) {
+      logger.error(error.message);
+      throw new AppError({ message: error.message, statusCode: HttpStatusCode.BAD_REQUEST });
+    }
+  }
+
+  async getChats(input: { token: string, instanceName: string; }): Promise<any> {
     const instanceName = input.instanceName;
     const session = await prisma.whatsappSession.findUnique({ where: { id: instanceName } });
     if (!session) {
@@ -103,30 +111,30 @@ export default class EvolutionService {
       remoteJid: string,
       createdAt: string,
       updatedAt: string,
-      instanceId: number
+      instanceId: number;
     }[]>(`/chat/findChats/${instanceName}`, {
       headers: {
         Authorization: `Bearer ${input.token}`
       }
-    })
-    return { chats: JSON.stringify(result.data), sessionToken: session.token }
+    });
+    return { chats: JSON.stringify(result.data), sessionToken: session.token };
   }
 
-  async findChats(input: { token: string, instanceName: string }) {
+  async findChats(input: { token: string, instanceName: string; }) {
     try {
       const result = await this.client.get(`/chat/findChats/${input.instanceName}`, {
         headers: {
           Authorization: `Bearer ${input.token}`
         }
-      })
+      });
       return result.data;
     } catch (error: any) {
-      logger.error(error.message)
+      logger.error(error.message);
       throw new AppError({ message: error.message, statusCode: HttpStatusCode.BAD_REQUEST });
     }
   }
 
-  async processItem(input: { item: any, token: string, instanceName: string }) {
+  async processItem(input: { item: any, token: string, instanceName: string; }) {
     if (checkIfIsGroup(input.item.remoteJid)) {
       const { data } = await this.client.get(`/group/findGroupInfos/${input.instanceName}?groupJid=${input.item.remoteJid}`, {
         headers: {
@@ -138,7 +146,7 @@ export default class EvolutionService {
         whatsappId: data.id,
         whatsappName: data.pushName,
         whatsappSessionId: input.instanceName
-      })
+      });
     } else {
       const { data } = await this.client.post(`/chat/findContacts/${input.instanceName}`, {
         where: {
@@ -154,12 +162,12 @@ export default class EvolutionService {
         whatsappId: data[0].remoteJid,
         whatsappName: data[0].pushName,
         whatsappSessionId: input.instanceName
-      })
+      });
       return data;
     }
   }
 
-  async processItems(input: { chats: string, token: string, instanceName: string }) {
+  async processItems(input: { chats: string, token: string, instanceName: string; }) {
     try {
       const { data: groups } = await this.client.get<EvolutionGroup[]>(`/group/fetchAllGroups/${input.instanceName}`, {
         params: {
@@ -173,7 +181,7 @@ export default class EvolutionService {
           whatsappName: group.subject,
           whatsappSessionId: input.instanceName
         });
-      })
+      });
       return await Promise.all(promises);
     } catch (error: any) {
       logger.error(`[Evolution Service] | ${error.stack}`);
@@ -189,7 +197,7 @@ export default class EvolutionService {
         mediatype: input.mediaMessage.mediatype,
         caption: input.mediaMessage.caption,
         media: input.mediaMessage.media,
-      })
+      });
       if (status === 201) {
         const updateUsage = () => prisma.$transaction(async (ctx) => {
           const subscription = await ctx.userSubscription.findUnique({ where: { userId: input.userId } });
@@ -200,9 +208,9 @@ export default class EvolutionService {
           await ctx.userSubscription.update({
             where: { id: subscription?.id as string },
             data: { usage: (subscription?.usage as number) + 1 }
-          })
-        })
-        await updateUsage()
+          });
+        });
+        await updateUsage();
       }
       return data;
     } catch (error: any) {
@@ -225,8 +233,8 @@ export default class EvolutionService {
           await ctx.userSubscription.update({
             where: { id: subscription?.id as string },
             data: { usage: (subscription?.usage as number) + 1 }
-          })
-        })
+          });
+        });
         await updateUsage();
       }
       return data;

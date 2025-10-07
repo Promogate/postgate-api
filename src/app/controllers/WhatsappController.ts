@@ -137,7 +137,6 @@ export default class WhatsappController {
         });
       }
 
-      // Update connection status for clients
       const whatsappApiService = this.getWhatsappApiService();
       for (const client of clients) {
         if (client.status === "" || !client.status) {
